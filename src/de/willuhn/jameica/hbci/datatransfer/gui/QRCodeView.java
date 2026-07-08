@@ -64,6 +64,8 @@ public class QRCodeView extends AbstractView {
         LabelGroup empfaengerGroup = new LabelGroup(container.getComposite(), i.tr("recipient"));
         empfaengerGroup.addLabelPair(i.tr("name"), new de.willuhn.jameica.gui.input.TextInput(
             transferData.getEmpfaengerName() != null ? transferData.getEmpfaengerName() : ""));
+        empfaengerGroup.addLabelPair(i.tr("city"), new de.willuhn.jameica.gui.input.TextInput(
+            transferData.getEmpfaengerOrt() != null ? transferData.getEmpfaengerOrt() : ""));
 
         LabelGroup betragGroup = new LabelGroup(container.getComposite(), i.tr("amount"));
         String betragStr = "";
