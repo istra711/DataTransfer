@@ -26,10 +26,15 @@ public class QrCodeSelector {
 
     private static synchronized I18N getI18n() {
         if (i18n == null) {
-            i18n = Application.getPluginLoader()
-                .getPlugin("de.willuhn.jameica.hbci.datatransfer.DataTransferPlugin")
-                .getResources()
-                .getI18N();
+            try {
+                i18n = Application.getPluginLoader()
+                    .getPlugin("de.willuhn.jameica.hbci.datatransfer.DataTransferPlugin")
+                    .getResources()
+                    .getI18N();
+            } catch (Exception e) {
+                // Fallback wenn Plugin noch nicht geladen
+                return null;
+            }
         }
         return i18n;
     }
@@ -165,16 +170,19 @@ public class QrCodeSelector {
             return validQrTexts.get(0);
         }
 
+        String title = "QR-Code auswaehlen";
+        String message = validQrTexts.size() + " SEPA-QR-Codes gefunden. Waehlen Sie einen aus:";
+
         String[] options = new String[validQrTexts.size()];
-        for (int i = 0; i < validQrTexts.size(); i++) {
-            String text = validQrTexts.get(i);
-            options[i] = text.length() > 80 ? text.substring(0, 80) + "..." : text;
+        for (int idx = 0; idx < validQrTexts.size(); idx++) {
+            String text = validQrTexts.get(idx);
+            options[idx] = (idx + 1) + ": " + (text.length() > 80 ? text.substring(0, 80) + "..." : text);
         }
 
         String selected = (String) JOptionPane.showInputDialog(
             parent,
-            i18n.tr("multiple.qr.select"),
-            i18n.tr("qrcode.scan.title"),
+            message,
+            title,
             JOptionPane.QUESTION_MESSAGE,
             null,
             options,
@@ -184,10 +192,9 @@ public class QrCodeSelector {
             return null;
         }
 
-        for (int i = 0; i < options.length; i++) {
-            if (options[i].equals(selected)) {
-                return validQrTexts.get(i);
-            }
+        int selectedIndex = Integer.parseInt(selected.split(":")[0].trim()) - 1;
+        if (selectedIndex >= 0 && selectedIndex < validQrTexts.size()) {
+            return validQrTexts.get(selectedIndex);
         }
 
         return null;

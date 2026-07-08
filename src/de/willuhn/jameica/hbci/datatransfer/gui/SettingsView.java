@@ -83,11 +83,13 @@ public class SettingsView extends AbstractView {
         final de.willuhn.jameica.gui.input.TextInput empKeywordsInput =
             new de.willuhn.jameica.gui.input.TextInput(settings.getEmpfaengerKeywords());
         empKeywordsGroup.addLabelPair(i.tr("settings.keywords.list"), empKeywordsInput);
+        addKeywordEditor(empKeywordsInput, i.tr("settings.keywords.empfaenger"));
 
         LabelGroup zweckKeywordsGroup = new LabelGroup(container.getComposite(), i.tr("settings.keywords.verwendungszweck"));
         final de.willuhn.jameica.gui.input.TextInput zweckKeywordsInput =
             new de.willuhn.jameica.gui.input.TextInput(settings.getVerwendungszweckKeywords());
         zweckKeywordsGroup.addLabelPair(i.tr("settings.keywords.list"), zweckKeywordsInput);
+        addKeywordEditor(zweckKeywordsInput, i.tr("settings.keywords.verwendungszweck"));
 
         new Button(i.tr("settings.save"), new Action() {
             @Override
@@ -130,5 +132,96 @@ public class SettingsView extends AbstractView {
                 }
             }
         }, null, true).paint(container.getComposite());
+    }
+
+    /**
+     * Fuegt einem TextInput einen Doppelklick-Handler fuer den Keyword-Editor hinzu.
+     */
+    private void addKeywordEditor(final de.willuhn.jameica.gui.input.TextInput input, final String title) {
+        org.eclipse.swt.widgets.Control control = input.getControl();
+        if (control == null) return;
+
+        control.addMouseListener(new org.eclipse.swt.events.MouseListener() {
+            public void mouseDoubleClick(org.eclipse.swt.events.MouseEvent e) {
+                openKeywordEditor(input, title);
+            }
+            public void mouseDown(org.eclipse.swt.events.MouseEvent e) {}
+            public void mouseUp(org.eclipse.swt.events.MouseEvent e) {}
+        });
+    }
+
+    /**
+     * Oeffnet ein Editor-Fenster fuer Keywords (zeilenweise Eingabe).
+     */
+    private void openKeywordEditor(final de.willuhn.jameica.gui.input.TextInput input, final String title) {
+        final I18N i = getI18n();
+        org.eclipse.swt.widgets.Shell parentShell = GUI.getShell();
+        if (parentShell == null || parentShell.isDisposed()) return;
+
+        final org.eclipse.swt.widgets.Shell dialog = new org.eclipse.swt.widgets.Shell(parentShell,
+            org.eclipse.swt.SWT.APPLICATION_MODAL | org.eclipse.swt.SWT.TITLE | org.eclipse.swt.SWT.CLOSE | org.eclipse.swt.SWT.RESIZE);
+        dialog.setText(title);
+        dialog.setSize(500, 400);
+        dialog.setLayout(new org.eclipse.swt.layout.GridLayout(1, false));
+
+        // Hinweis
+        org.eclipse.swt.widgets.Label hint = new org.eclipse.swt.widgets.Label(dialog, org.eclipse.swt.SWT.WRAP);
+        hint.setText("Ein Keyword pro Zeile. Fertig mit OK bestaetigen.");
+        hint.setLayoutData(new org.eclipse.swt.layout.GridData(
+            org.eclipse.swt.SWT.FILL, org.eclipse.swt.SWT.TOP, true, false));
+
+        // Editor (zeilenweise)
+        final org.eclipse.swt.widgets.Text editor = new org.eclipse.swt.widgets.Text(dialog,
+            org.eclipse.swt.SWT.MULTI | org.eclipse.swt.SWT.V_SCROLL | org.eclipse.swt.SWT.H_SCROLL | org.eclipse.swt.SWT.BORDER);
+        editor.setLayoutData(new org.eclipse.swt.layout.GridData(
+            org.eclipse.swt.SWT.FILL, org.eclipse.swt.SWT.FILL, true, true));
+        editor.setBackground(parentShell.getDisplay().getSystemColor(org.eclipse.swt.SWT.COLOR_WHITE));
+
+        // Aktuellen Wert konvertieren (Komma -> Zeilenumbruch)
+        String currentValue = (String) input.getValue();
+        if (currentValue != null && !currentValue.isEmpty()) {
+            editor.setText(currentValue.replace(",", "\n"));
+        }
+
+        // Buttons
+        org.eclipse.swt.widgets.Composite buttons = new org.eclipse.swt.widgets.Composite(dialog, org.eclipse.swt.SWT.NONE);
+        buttons.setLayoutData(new org.eclipse.swt.layout.GridData(org.eclipse.swt.SWT.FILL, org.eclipse.swt.SWT.TOP, true, false));
+        buttons.setLayout(new org.eclipse.swt.layout.GridLayout(2, true));
+
+        // OK Button
+        org.eclipse.swt.widgets.Button okButton = new org.eclipse.swt.widgets.Button(buttons, org.eclipse.swt.SWT.PUSH);
+        okButton.setText("OK");
+        okButton.setLayoutData(new org.eclipse.swt.layout.GridData(
+            org.eclipse.swt.SWT.FILL, org.eclipse.swt.SWT.TOP, true, false));
+        okButton.addSelectionListener(new org.eclipse.swt.events.SelectionAdapter() {
+            public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
+                // Zeilen -> Komma-getrennte Liste
+                String text = editor.getText();
+                String[] lines = text.split("\\n");
+                StringBuilder sb = new StringBuilder();
+                for (String line : lines) {
+                    String trimmed = line.trim();
+                    if (!trimmed.isEmpty()) {
+                        if (sb.length() > 0) sb.append(",");
+                        sb.append(trimmed);
+                    }
+                }
+                input.setValue(sb.toString());
+                dialog.dispose();
+            }
+        });
+
+        // Abbrechen Button
+        org.eclipse.swt.widgets.Button cancelButton = new org.eclipse.swt.widgets.Button(buttons, org.eclipse.swt.SWT.PUSH);
+        cancelButton.setText("Abbrechen");
+        cancelButton.setLayoutData(new org.eclipse.swt.layout.GridData(
+            org.eclipse.swt.SWT.FILL, org.eclipse.swt.SWT.TOP, true, false));
+        cancelButton.addSelectionListener(new org.eclipse.swt.events.SelectionAdapter() {
+            public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
+                dialog.dispose();
+            }
+        });
+
+        dialog.open();
     }
 }
