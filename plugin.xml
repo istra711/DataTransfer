@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://www.willuhn.de/schema/jameica-plugin"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.willuhn.de/schema/jameica-plugin http://www.willuhn.de/schema/jameica-plugin-1.5.xsd"
+        name="hbci.datatransfer" version="2.0.0"
+        class="de.willuhn.jameica.hbci.datatransfer.DataTransferPlugin">
+
+  <description>OCR and QR code based SEPA transfer plugin for Hibiscus</description>
+  <license>GPL</license>
+
+  <requires jameica="2.0+" hibiscus="2.0+" />
+
+  <classfinder>
+    <include>datatransfer\.jar</include>
+    <include>.*\.class</include>
+  </classfinder>
+
+  <menu>
+    <item name="navi.transfer">
+      <item name="navi.file" shortcut="CTRL+SHIFT+D"
+            action="de.willuhn.jameica.hbci.datatransfer.action.FileAction" />
+      <item name="navi.clipboard" shortcut="CTRL+SHIFT+V"
+            action="de.willuhn.jameica.hbci.datatransfer.action.ClipboardAction" />
+      <item name="navi.webcam" shortcut="CTRL+SHIFT+W"
+            action="de.willuhn.jameica.hbci.datatransfer.action.WebcamAction" />
+      <item name="navi.settings"
+            action="de.willuhn.jameica.hbci.datatransfer.action.SettingsAction" />
+    </item>
+  </menu>
+
+  <navigation>
+    <item id="hibiscus.navi.sepatransfer">
+      <item name="navi.transfer" icon-close="datatransfer-icon.png" icon-open="datatransfer-icon.png">
+        <item name="navi.file" icon-close="file-icon.png" icon-open="file-icon.png"
+              action="de.willuhn.jameica.hbci.datatransfer.action.FileAction" />
+        <item name="navi.clipboard" icon-close="clipboard-icon.png" icon-open="clipboard-icon.png"
+              action="de.willuhn.jameica.hbci.datatransfer.action.ClipboardAction" />
+        <item name="navi.webcam" icon-close="webcam-icon.png" icon-open="webcam-icon.png"
+              action="de.willuhn.jameica.hbci.datatransfer.action.WebcamAction" />
+        <item name="navi.settings" icon-close="settings-icon.png" icon-open="settings-icon.png"
+              action="de.willuhn.jameica.hbci.datatransfer.action.SettingsAction" />
+      </item>
+    </item>
+  </navigation>
+
+</plugin>
