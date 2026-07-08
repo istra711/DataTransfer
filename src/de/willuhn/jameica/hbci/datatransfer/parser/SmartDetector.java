@@ -4,9 +4,6 @@ import de.willuhn.jameica.hbci.datatransfer.model.TransferData;
 import de.willuhn.jameica.hbci.datatransfer.model.TransferData.Source;
 
 import com.google.zxing.*;
-import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
-import com.google.zxing.common.HybridBinarizer;
-import com.google.zxing.multi.GenericMultipleBarcodeReader;
 
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -16,10 +13,7 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 
@@ -119,13 +113,32 @@ public class SmartDetector {
 
     /**
      * Versucht einen QR-Code aus einem Bild zu lesen.
+     * Unterstuetzt mehrere QR-Codes mit Auswahl.
      */
     private static TransferData tryQrCode(BufferedImage image) {
         try {
-            String qrText = decodeQrCode(image);
-            if (qrText != null) {
-                return parseQrText(qrText);
+            List<String> allQrTexts = QrCodeSelector.decodeMultiple(image);
+            if (allQrTexts.isEmpty()) {
+                return null;
             }
+
+            List<String> validSepa = QrCodeSelector.filterValidSepa(allQrTexts);
+            if (validSepa.isEmpty()) {
+                return null;
+            }
+
+            String selected;
+            if (validSepa.size() == 1) {
+                selected = validSepa.get(0);
+            } else {
+                selected = QrCodeSelector.selectFromMultiple(validSepa, null);
+            }
+
+            if (selected == null) {
+                return null;
+            }
+
+            return parseQrText(selected);
         } catch (Exception e) {
             logger.info("QR-Code-Erkennung fehlgeschlagen: " + e.getMessage());
         }
@@ -134,36 +147,52 @@ public class SmartDetector {
 
     /**
      * Versucht QR-Codes aus einer PDF zu lesen.
+     * Scannt alle Seiten und sammelt alle QR-Codes.
      */
     private static TransferData tryQrCodeInPDF(File file) throws Exception {
+        List<String> allQrTexts = new ArrayList<>();
+
         try (PDDocument document = Loader.loadPDF(file)) {
             PDFRenderer renderer = new PDFRenderer(document);
             for (int page = 0; page < document.getNumberOfPages(); page++) {
                 BufferedImage image = renderer.renderImageWithDPI(page, 200);
-                String qrText = decodeQrCode(image);
-                if (qrText != null) {
-                    return parseQrText(qrText);
+                try {
+                    List<String> pageQrCodes = QrCodeSelector.decodeMultiple(image);
+                    for (String qrText : pageQrCodes) {
+                        if (!allQrTexts.contains(qrText)) {
+                            allQrTexts.add(qrText);
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.info("QR-Code-Erkennung auf Seite " + (page + 1) + " fehlgeschlagen: " + e.getMessage());
                 }
             }
         }
-        return null;
-    }
 
-    /**
-     * Dekodiert einen QR-Code aus einem Bild.
-     */
-    private static String decodeQrCode(BufferedImage image) {
-        try {
-            LuminanceSource source = new BufferedImageLuminanceSource(image);
-            BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-            Map<DecodeHintType, Object> hints = new HashMap<>();
-            hints.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
-            hints.put(DecodeHintType.POSSIBLE_FORMATS, EnumSet.of(BarcodeFormat.QR_CODE));
-            Result result = new MultiFormatReader().decode(bitmap, hints);
-            return result.getText();
-        } catch (NotFoundException e) {
+        if (allQrTexts.isEmpty()) {
             return null;
         }
+
+        logger.info("Insgesamt " + allQrTexts.size() + " QR-Code(s) in PDF gefunden");
+
+        List<String> validSepa = QrCodeSelector.filterValidSepa(allQrTexts);
+        if (validSepa.isEmpty()) {
+            logger.info("Keine gueltigen SEPA-QR-Codes gefunden");
+            return null;
+        }
+
+        String selected;
+        if (validSepa.size() == 1) {
+            selected = validSepa.get(0);
+        } else {
+            selected = QrCodeSelector.selectFromMultiple(validSepa, null);
+        }
+
+        if (selected == null) {
+            return null;
+        }
+
+        return parseQrText(selected);
     }
 
     /**

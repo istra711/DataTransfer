@@ -83,9 +83,11 @@ public class InvoiceTextParser {
     private String extractEmpfaenger(String text) {
         OcrSettings settings = OcrSettings.getInstance();
         String[] keywords = settings.getEmpfaengerKeywordsArray();
+        String textLower = text.toLowerCase();
 
         for (String keyword : keywords) {
-            int idx = text.indexOf(keyword);
+            String kwLower = keyword.toLowerCase();
+            int idx = textLower.indexOf(kwLower);
             if (idx >= 0) {
                 int start = idx + keyword.length();
                 int end = text.indexOf("\n", start);
@@ -99,9 +101,9 @@ public class InvoiceTextParser {
 
         String[] lines = text.split("\\n");
         for (int i = 0; i < lines.length - 1; i++) {
-            String line = lines[i].trim();
+            String line = lines[i].trim().toLowerCase();
             for (String keyword : keywords) {
-                if (line.contains(keyword)) {
+                if (line.contains(keyword.toLowerCase())) {
                     String name = lines[i + 1].trim();
                     if (name.length() >= 2 && name.length() <= 100) {
                         return name;
@@ -151,9 +153,11 @@ public class InvoiceTextParser {
     private String extractVerwendungszweck(String text) {
         OcrSettings settings = OcrSettings.getInstance();
         String[] keywords = settings.getVerwendungszweckKeywordsArray();
+        String textLower = text.toLowerCase();
 
         for (String keyword : keywords) {
-            int idx = text.indexOf(keyword);
+            String kwLower = keyword.toLowerCase();
+            int idx = textLower.indexOf(kwLower);
             if (idx >= 0) {
                 int start = idx + keyword.length();
                 int end = text.indexOf("\n", start);
