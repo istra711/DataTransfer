@@ -38,6 +38,23 @@ public class SettingsView extends AbstractView {
 
         GUI.getView().setTitle(i.tr("settings.title"));
 
+        // Hilfe Button oben
+        org.eclipse.swt.widgets.Composite topBar = new org.eclipse.swt.widgets.Composite(getParent(), org.eclipse.swt.SWT.NONE);
+        topBar.setLayoutData(new org.eclipse.swt.layout.GridData(org.eclipse.swt.SWT.FILL, org.eclipse.swt.SWT.TOP, true, false));
+        org.eclipse.swt.layout.GridLayout topLayout = new org.eclipse.swt.layout.GridLayout(2, false);
+        topLayout.marginWidth = 0;
+        topLayout.marginHeight = 0;
+        topBar.setLayout(topLayout);
+
+        new Headline(topBar, i.tr("settings.title"));
+
+        new Button(i.tr("settings.help"), new Action() {
+            @Override
+            public void handleAction(Object context) throws de.willuhn.util.ApplicationException {
+                showHelpDialog();
+            }
+        }, null, false).paint(topBar);
+
         SimpleContainer container = new SimpleContainer(getParent());
 
         LabelGroup langGroup = new LabelGroup(container.getComposite(), i.tr("settings.language"));
@@ -209,5 +226,36 @@ public class SettingsView extends AbstractView {
         });
 
         dialog.open();
+    }
+
+    private void showHelpDialog() {
+        final I18N i = getI18n();
+        org.eclipse.swt.widgets.Shell shell = GUI.getShell();
+        if (shell == null || shell.isDisposed()) return;
+
+        org.eclipse.swt.widgets.Shell dialogShell = new org.eclipse.swt.widgets.Shell(shell,
+            org.eclipse.swt.SWT.APPLICATION_MODAL | org.eclipse.swt.SWT.TITLE | org.eclipse.swt.SWT.CLOSE | org.eclipse.swt.SWT.RESIZE);
+        dialogShell.setText(i.tr("settings.help.title"));
+        dialogShell.setSize(600, 500);
+        dialogShell.setLayout(new org.eclipse.swt.layout.GridLayout(1, false));
+
+        org.eclipse.swt.widgets.Text helpText = new org.eclipse.swt.widgets.Text(dialogShell,
+            org.eclipse.swt.SWT.MULTI | org.eclipse.swt.SWT.READ_ONLY | org.eclipse.swt.SWT.V_SCROLL | org.eclipse.swt.SWT.WRAP);
+        helpText.setLayoutData(new org.eclipse.swt.layout.GridData(
+            org.eclipse.swt.SWT.FILL, org.eclipse.swt.SWT.FILL, true, true));
+        helpText.setBackground(shell.getDisplay().getSystemColor(org.eclipse.swt.SWT.COLOR_WHITE));
+        helpText.setText(i.tr("settings.help.content"));
+
+        org.eclipse.swt.widgets.Button closeButton = new org.eclipse.swt.widgets.Button(dialogShell, org.eclipse.swt.SWT.PUSH);
+        closeButton.setText(i.tr("abbrechen"));
+        closeButton.setLayoutData(new org.eclipse.swt.layout.GridData(
+            org.eclipse.swt.SWT.END, org.eclipse.swt.SWT.TOP, false, false));
+        closeButton.addSelectionListener(new org.eclipse.swt.events.SelectionAdapter() {
+            public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
+                dialogShell.dispose();
+            }
+        });
+
+        dialogShell.open();
     }
 }
