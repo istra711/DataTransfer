@@ -30,14 +30,14 @@
 
   <navigation>
     <item id="hibiscus.navi.sepatransfer">
-      <item name="navi.transfer" icon-close="datatransfer-icon.png" icon-open="datatransfer-icon.png">
-        <item name="navi.file" icon-close="file-icon.png" icon-open="file-icon.png"
+      <item name="navi.transfer" icon-close="img/datatransfer-icon.png" icon-open="img/datatransfer-icon.png">
+        <item name="navi.file" icon-close="img/file-icon.png" icon-open="img/file-icon.png"
               action="de.willuhn.jameica.hbci.datatransfer.action.FileAction" />
-        <item name="navi.clipboard" icon-close="clipboard-icon.png" icon-open="clipboard-icon.png"
+        <item name="navi.clipboard" icon-close="img/clipboard-icon.png" icon-open="img/clipboard-icon.png"
               action="de.willuhn.jameica.hbci.datatransfer.action.ClipboardAction" />
-        <item name="navi.webcam" icon-close="webcam-icon.png" icon-open="webcam-icon.png"
+        <item name="navi.webcam" icon-close="img/webcam-icon.png" icon-open="img/webcam-icon.png"
               action="de.willuhn.jameica.hbci.datatransfer.action.WebcamAction" />
-        <item name="navi.settings" icon-close="settings-icon.png" icon-open="settings-icon.png"
+        <item name="navi.settings" icon-close="img/settings-icon.png" icon-open="img/settings-icon.png"
               action="de.willuhn.jameica.hbci.datatransfer.action.SettingsAction" />
       </item>
     </item>
