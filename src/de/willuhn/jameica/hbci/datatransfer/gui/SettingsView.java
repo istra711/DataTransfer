@@ -79,16 +79,15 @@ public class SettingsView extends AbstractView {
             new de.willuhn.jameica.gui.input.TextInput(settings.getBlacklist());
         charGroup.addLabelPair(i.tr("settings.chars.blacklist"), blacklistInput);
 
-        LabelGroup empKeywordsGroup = new LabelGroup(container.getComposite(), i.tr("settings.keywords.empfaenger"));
+        LabelGroup keywordsGroup = new LabelGroup(container.getComposite(), i.tr("settings.keywords"));
         final de.willuhn.jameica.gui.input.TextInput empKeywordsInput =
             new de.willuhn.jameica.gui.input.TextInput(settings.getEmpfaengerKeywords());
-        empKeywordsGroup.addLabelPair(i.tr("settings.keywords.list"), empKeywordsInput);
+        keywordsGroup.addLabelPair(i.tr("settings.keywords.empfaenger"), empKeywordsInput);
         addKeywordEditor(empKeywordsInput, i.tr("settings.keywords.empfaenger"));
 
-        LabelGroup zweckKeywordsGroup = new LabelGroup(container.getComposite(), i.tr("settings.keywords.verwendungszweck"));
         final de.willuhn.jameica.gui.input.TextInput zweckKeywordsInput =
             new de.willuhn.jameica.gui.input.TextInput(settings.getVerwendungszweckKeywords());
-        zweckKeywordsGroup.addLabelPair(i.tr("settings.keywords.list"), zweckKeywordsInput);
+        keywordsGroup.addLabelPair(i.tr("settings.keywords.verwendungszweck"), zweckKeywordsInput);
         addKeywordEditor(zweckKeywordsInput, i.tr("settings.keywords.verwendungszweck"));
 
         new Button(i.tr("settings.save"), new Action() {

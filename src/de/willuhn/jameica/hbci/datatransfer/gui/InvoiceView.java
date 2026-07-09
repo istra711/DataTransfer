@@ -73,7 +73,7 @@ public class InvoiceView extends AbstractView {
 
         container.addHeadline(i.tr("invoice.ocr.title"));
 
-        LabelGroup ibanGroup = new LabelGroup(container.getComposite(), i.tr("section.iban.bic"));
+        LabelGroup ibanGroup = new LabelGroup(container.getComposite(), i.tr("section.empfaenger.konto"));
         final de.willuhn.jameica.gui.input.TextInput ibanInput =
             new de.willuhn.jameica.gui.input.TextInput(
                 transferData.getIban() != null ? transferData.getIban() : "");
@@ -90,7 +90,7 @@ public class InvoiceView extends AbstractView {
         final de.willuhn.jameica.gui.input.TextInput nameInput =
             new de.willuhn.jameica.gui.input.TextInput(
                 transferData.getEmpfaengerName() != null ? transferData.getEmpfaengerName() : "");
-        empGroup.addLabelPair(i.tr("empfaenger"), nameInput);
+        empGroup.addLabelPair(i.tr("name"), nameInput);
         trackFocus(nameInput);
 
         LabelGroup betragGroup = new LabelGroup(container.getComposite(), i.tr("betrag"));
