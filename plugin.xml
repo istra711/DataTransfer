@@ -10,6 +10,8 @@
 
   <requires jameica="2.0+" hibiscus="2.0+" />
 
+  <depends>hibiscus</depends>
+
   <classfinder>
     <include>datatransfer\.jar</include>
     <include>.*\.class</include>
