@@ -12,6 +12,7 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -291,6 +292,36 @@ public class SmartDetector {
         try (PDDocument document = Loader.loadPDF(file)) {
             PDFTextStripper stripper = new PDFTextStripper();
             return stripper.getText(document);
+        }
+    }
+
+    /**
+     * Erkennt automatisch aus einem InputStream.
+     * Wird vom Importer verwendet.
+     */
+    public static TransferData detectFromStream(InputStream is, de.willuhn.util.ProgressMonitor monitor) throws Exception {
+        if (is == null) {
+            throw new Exception("InputStream ist null");
+        }
+
+        // In temporaere Datei schreiben (fuer PDF-Behandlung noetig)
+        File tempFile = File.createTempFile("datatransfer_", ".tmp");
+        tempFile.deleteOnExit();
+
+        try {
+            // InputStream in Datei kopieren
+            java.io.FileOutputStream fos = new java.io.FileOutputStream(tempFile);
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = is.read(buffer)) != -1) {
+                fos.write(buffer, 0, bytesRead);
+            }
+            fos.close();
+
+            // Detection durchfuehren
+            return detectFromFile(tempFile);
+        } finally {
+            tempFile.delete();
         }
     }
 }
