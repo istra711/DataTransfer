@@ -116,6 +116,12 @@ Das Plugin verwendet einen intelligenten Erkennungsalgorithmus:
 
 ## Versionshistorie
 
+### v2.2.0-test (Entwicklung)
+
+- Importer-Integration für IORegistry (Test-Version)
+- Erfordert aktuelle Hibiscus-Entwicklungsversion
+- Details: https://github.com/willuhn/hibiscus/commit/cbbce4ad6abafc652011e5c777338cc74b786d38
+
 ### v2.1.0
 
 - Hilfe-Button und Hilfetext-Dialog in den Einstellungen
