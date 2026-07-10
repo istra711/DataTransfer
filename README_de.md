@@ -65,7 +65,7 @@ Dieses Plugin erfordert eine gepatchte Version von Hibiscus, die einen globalen 
 
 Der Patch ändert `IORegistry.java`, um `Application.getClassLoader().getClassFinder()` statt des plugin-spezifischen ClassLoaders zu verwenden, sodass alle installierten Plugins gefunden werden können.
 
-**Hinweis:** Dieser Patch wurde dem Hibiscus-Maintainer vorgelegt und wird in einer zukünftigen offiziellen Hibiscus-Version enthalten sein. Sobald diese Version verfügbar ist, wird die gepatchte Hibiscus-Version nicht mehr benötigt.
+**Hinweis:** Die erforderlichen Änderungen wurden vom Hibiscus-Entwickler vorgeschlagen (siehe [Hibiscus bugfix](https://github.com/willuhn/hibiscus/)) und werden in einer zukünftigen offiziellen Hibiscus-Version enthalten sein. Sobald diese Version verfügbar ist, wird die gepatchte Hibiscus-Version nicht mehr benötigt.
 
 ## Installation
 
