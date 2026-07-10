@@ -1,189 +1,189 @@
 # SEPA Data Transfer Plugin for Jameica/Hibiscus
 
-**Nachfolger und Fusion des QRtransfer-Plugins und OCRtransfer-Plugins.** Dieses Plugin ersetzt beide Einzel-Plugins und bietet eine einheitliche Oberfläche für alle Zahlungsdaten-Imports.
+**Successor and fusion of the QRtransfer and OCRtransfer plugins.** This plugin replaces both individual plugins and provides a unified interface for all payment data imports.
 
-Kombiniertes Jameica/Hibiscus-Plugin zum Lesen von SEPA-Zahlungsdaten aus QR-Codes und OCR (Rechnungen), mit automatischer Erkennung des Quellentyps.
+A combined Jameica/Hibiscus plugin for reading SEPA payment data from QR codes and OCR (invoices), with automatic source type detection.
 
-## Was dieses Plugin ersetzt
+## What This Plugin Replaces
 
-| Altes Plugin | Funktion | Status |
-|-------------|----------|--------|
-| **QRtransfer** | QR-Code-Import (EPC/EMV) | ❌ Nicht mehr nötig |
-| **OCRtransfer** | OCR-Import (Rechnungen) | ❌ Nicht mehr nötig |
-| **DataTransfer** | Beides in einem + Import-Dialog | ✅ Dieses Plugin |
+| Old Plugin | Function | Status |
+|-----------|----------|--------|
+| **QRtransfer** | QR code import (EPC/EMV) | ❌ No longer needed |
+| **OCRtransfer** | OCR import (invoices) | ❌ No longer needed |
+| **DataTransfer** | Both in one + Import dialog | ✅ This plugin |
 
 ## Features
 
-### Was dieses Plugin besser macht als die Einzel-Plugins
+### Why This Plugin Is Better Than Individual Plugins
 
-- **Ein Plugin statt zwei**: Installiert einmal, statt QRtransfer UND OCRtransfer separat zu installieren
-- **Automatische Erkennung**: Keine manuelle Auswahl nötig - das Plugin erkennt automatisch ob QR-Code oder OCR
-- **Hibiscus Import-Dialog**: Erscheint direkt im Import-Menü von Hibiscus ("Rechnungs-Datei(PDF/Image) - OCR/QR")
-- **Review-Dialog**: Daten können vor dem Speichern geprüft und korrigiert werden
-- **Einheitliche Einstellungen**: Keyword-Suche für beide Modi in einer Einstellungsansicht
+- **One plugin instead of two**: Install once, instead of installing QRtransfer AND OCRtransfer separately
+- **Automatic detection**: No manual selection needed - the plugin automatically detects QR code or OCR
+- **Hibiscus Import Dialog**: Appears directly in Hibiscus's import menu ("Invoice File (PDF/Image) - OCR/QR")
+- **Review dialog**: Data can be reviewed and corrected before saving
+- **Unified settings**: Keyword search for both modes in one settings view
 
-- **Automatische Erkennung**: Erkennt automatisch QR-Code (EPC/EMV) oder OCR-Text
-- **Eingabemethoden**:
-  - **Datei** - PDF-Rechnungen oder Bilddateien laden (PNG, JPG, BMP, TIFF)
-  - **Zwischenablage** - Bilder direkt aus der Zwischenablage einlesen
-  - **Webcam** - QR-Codes live mit der Kamera scannen
-- **QR-Code-Unterstützung**:
-  - EPC (BCD) Format - Europäisches Payment Council Standardformat
-  - EMV (TLV) Format - EMV-Standard aus Zahlungsterminalen
-  - Multi-QR-Erkennung: Mehrere QR-Codes in einer PDF automatisch finden und auswählen
-- **OCR-Unterstützung**:
+- **Automatic detection**: Automatically detects QR code (EPC/EMV) or OCR text
+- **Input methods**:
+  - **File** - Load PDF invoices or image files (PNG, JPG, BMP, TIFF)
+  - **Clipboard** - Read images directly from clipboard
+  - **Webcam** - Scan QR codes live with camera
+- **QR code support**:
+  - EPC (BCD) format - European Payment Council standard format
+  - EMV (TLV) format - EMV standard from payment terminals
+  - Multi-QR detection: Automatically find and select multiple QR codes in a PDF
+- **OCR support**:
   - Tesseract 5.5.2 (via tess4j 5.19.0)
-  - PDF-Textextraktion (direkt und OCR-Fallback)
-  - Konfigurierbare OCR-Einstellungen (OEM, PSM, DPI, Sprache, Whitelist/Blacklist)
-- **Schlüsselwörter**:
-  - Empfänger-Keywords: Automatische Erkennung des Empfängernamens
-  - Verwendungszweck-Keywords: Automatische Erkennung des Verwendungszwecks
-  - Case-insensitive Suche
-  - Erweiterter Editor mit Doppelklick (zeilenweise Eingabe)
-- **SEPA-Überweisung**: Direkte Erstellung von Überweisungsentwürfen in Hibiscus
-- **Einstellungen**: Hilfe-Button mit detaillierter Erläuterung aller Optionen
-- **Internationalisierung**: Vollständige deutsche und englische Sprachunterstützung
+  - PDF text extraction (direct and OCR fallback)
+  - Configurable OCR settings (OEM, PSM, DPI, language, whitelist/blacklist)
+- **Keywords**:
+  - Recipient keywords: Automatic detection of recipient name
+  - Purpose keywords: Automatic detection of payment purpose
+  - Case-insensitive search
+  - Extended editor with double-click (line-by-line input)
+- **SEPA Transfer**: Direct creation of transfer drafts in Hibiscus
+- **Settings**: Help button with detailed explanation of all options
+- **Internationalization**: Full German and English language support
 
-## Voraussetzungen
+## Requirements
 
 - Jameica 2.10.0+
-- Hibiscus 2.10.0+ (mit ClassFinder-Patch für globale Klassenerkennung)
+- Hibiscus 2.10.0+ (with ClassFinder patch for global class detection)
 - Java 8+
-- Tesseract OCR (im Plugin enthalten)
+- Tesseract OCR (included in plugin)
 
 ## Installation
 
-1. Die neueste Version von der [Releases](https://github.com/istra711/DataTransfer/releases) Seite herunterladen
-2. Jameica starten
-3. Zu **Datei > Plugins online suchen... > Plugin manuell installieren...** navigieren
-4. Die heruntergeladene ZIP-Datei auswählen
-5. Jameica neu starten
+1. Download the latest version from the [Releases](https://github.com/istra711/DataTransfer/releases) page
+2. Start Jameica
+3. Navigate to **File > Search for plugins online... > Install plugin manually...**
+4. Select the downloaded ZIP file
+5. Restart Jameica
 
-## Benutzung
+## Usage
 
-### Über Hibiscus Import-Dialog
+### Via Hibiscus Import Dialog
 
-1. In Hibiscus zu **Überweisungen > Import** navigieren
-2. **"Rechnungs-Datei(PDF/Image) - OCR/QR"** auswählen
-3. Eine PDF- oder Bilddatei auswählen
-4. Konto auswählen (falls nicht bereits gesetzt)
-5. Daten werden erkannt und im Review-Dialog angezeigt
-6. Daten prüfen und bei Bedarf korrigieren
-7. Auf **Überweisung erstellen** klicken
+1. In Hibiscus, navigate to **Transfers > Import**
+2. Select **"Invoice File (PDF/Image) - OCR/QR"**
+3. Select a PDF or image file
+4. Select account (if not already set)
+5. Data is detected and displayed in the review dialog
+6. Review data and correct if necessary
+7. Click **Create Transfer**
 
-### Über Plugin-Menü
+### Via Plugin Menu
 
-1. Im Jameica-Menü **Daten-Transfer** wählen
-2. Eine der Eingabemethoden wählen:
-   - **Datei** - Öffnet Dateidialog für PDF- oder Bilddateien
-   - **Zwischenablage** - Liest Bild aus der Zwischenablage
-   - **Webcam** - Öffnet die Kamera zum QR-Code-Scanning
-3. Das Plugin erkennt automatisch den Quellentyp:
-   - QR-Code gefunden → QR-Code-Review-Ansicht wird geöffnet
-   - Kein QR-Code → OCR-Review-Ansicht wird geöffnet
-4. Die erkannten Daten überprüfen und bei Bedarf korrigieren
-5. Auf **Überweisung erstellen** klicken
+1. In the Jameica menu, select **Data Transfer**
+2. Choose one of the input methods:
+   - **File** - Opens file dialog for PDF or image files
+   - **Clipboard** - Reads image from clipboard
+   - **Webcam** - Opens camera for QR code scanning
+3. The plugin automatically detects the source type:
+   - QR code found → QR code review view opens
+   - No QR code → OCR review view opens
+4. Review detected data and correct if necessary
+5. Click **Create Transfer**
 
-### Tastenkürzel
+### Keyboard Shortcuts
 
-| Aktion | Kürzel |
-|--------|--------|
-| Datei (PDF/Bild) | `Ctrl+Shift+D` |
-| Zwischenablage | `Ctrl+Shift+V` |
+| Action | Shortcut |
+|--------|----------|
+| File (PDF/Image) | `Ctrl+Shift+D` |
+| Clipboard | `Ctrl+Shift+V` |
 | Webcam (QR) | `Ctrl+Shift+W` |
 
-## Technische Details
+## Technical Details
 
-### Architektur
+### Architecture
 
 ```
 src/de/willuhn/jameica/hbci/datatransfer/
-├── DataTransferPlugin.java          # Plugin-Einstiegspunkt
-├── DataTransferIO.java              # IORegistry-Registrierung (nur Datei-Importer)
-├── DataTransferBaseImporter.java    # Basis-Importer mit Review-Dialog
-├── DataTransferFileImporter.java    # Datei-Importer
-├── OcrSettings.java                 # OCR-Einstellungen
+├── DataTransferPlugin.java          # Plugin entry point
+├── DataTransferIO.java              # IORegistry registration (file importer only)
+├── DataTransferBaseImporter.java    # Base importer with review dialog
+├── DataTransferFileImporter.java    # File importer
+├── OcrSettings.java                 # OCR settings
 ├── action/
-│   ├── FileAction.java              # Datei-Eingabe (PDF/Bild) mit Auto-Erkennung
-│   ├── ClipboardAction.java         # Zwischenablage-Eingabe mit Auto-Erkennung
-│   ├── WebcamAction.java            # Webcam QR-Code-Scanning
-│   └── SettingsAction.java          # Einstellungsansicht öffnen
+│   ├── FileAction.java              # File input (PDF/Image) with auto-detection
+│   ├── ClipboardAction.java         # Clipboard input with auto-detection
+│   ├── WebcamAction.java            # Webcam QR code scanning
+│   └── SettingsAction.java          # Open settings view
 ├── gui/
-│   ├── InvoiceView.java             # OCR-Review-Ansicht mit Rohtext-Panel
-│   ├── QRCodeView.java              # QR-Code-Review-Ansicht
-│   ├── InvoiceDebugView.java        # Debug-Ansicht für erkannte Daten
-│   └── SettingsView.java            # Einstellungsansicht mit Hilfe
+│   ├── InvoiceView.java             # OCR review view with raw text panel
+│   ├── QRCodeView.java              # QR code review view
+│   ├── InvoiceDebugView.java        # Debug view for detected data
+│   └── SettingsView.java            # Settings view with help
 ├── model/
-│   ├── TransferData.java            # Einheitliches Datenmodell
-│   └── TransferDataHolder.java      # Hält TransferData + Konto für Views
+│   ├── TransferData.java            # Unified data model
+│   └── TransferDataHolder.java      # Holds TransferData + account for views
 └── parser/
-    ├── SmartDetector.java           # Auto-Erkennung (QR vs OCR)
-    ├── OcrEngine.java               # Tesseract-Wrapper
-    ├── InvoiceTextParser.java       # Regex-Parser für OCR-Text
-    ├── QrCodeParser.java            # Parser-Interface
-    ├── EpcParser.java               # EPC (BCD) Format-Parser
-    ├── EmvParser.java               # EMV (TLV) Format-Parser
-    └── QrCodeSelector.java          # Multi-QR-Erkennung und Auswahl
+    ├── SmartDetector.java           # Auto-detection (QR vs OCR)
+    ├── OcrEngine.java               # Tesseract wrapper
+    ├── InvoiceTextParser.java       # Regex parser for OCR text
+    ├── QrCodeParser.java            # Parser interface
+    ├── EpcParser.java               # EPC (BCD) format parser
+    ├── EmvParser.java               # EMV (TLV) format parser
+    └── QrCodeSelector.java          # Multi-QR detection and selection
 ```
 
-### Abhängigkeiten
+### Dependencies
 
-- **tess4j** 5.19.0 - Java-Wrapper für Tesseract 5.5.2 OCR
-- **PDFBox** 3.0.7 - PDF-Textextraktion und Rendering
-- **ZXing** 3.5.3 - QR-Code-Dekodierung (aus Jameica/Hibiscus)
-- **JNA** 5.18.1 - Native Library-Zugriff
+- **tess4j** 5.19.0 - Java wrapper for Tesseract 5.5.2 OCR
+- **PDFBox** 3.0.7 - PDF text extraction and rendering
+- **ZXing** 3.5.3 - QR code decoding (from Jameica/Hibiscus)
+- **JNA** 5.18.1 - Native library access
 - **SLF4J** 2.0.18 - Logging API
 
-### Smart Detection Logik
+### Smart Detection Logic
 
-Das Plugin verwendet einen intelligenten Erkennungsalgorithmus:
+The plugin uses an intelligent detection algorithm:
 
-1. **Datei-Eingabe**:
-   - PDF-Dateien: Zuerst QR-Code → Textextraktion → OCR-Fallback
-   - Bilddateien: Zuerst QR-Code → OCR-Fallback
+1. **File input**:
+   - PDF files: QR code first → Text extraction → OCR fallback
+   - Image files: QR code first → OCR fallback
 
-2. **Zwischenablage-Eingabe**:
-   - Zuerst QR-Code → OCR-Fallback
+2. **Clipboard input**:
+   - QR code first → OCR fallback
 
-3. **Webcam-Eingabe**:
-   - Nur QR-Code (kein OCR)
+3. **Webcam input**:
+   - QR code only (no OCR)
 
-## Versionshistorie
+## Version History
 
 ### v2.3.0
 
-- Hibiscus Import-Dialog Integration: "Rechnungs-Datei(PDF/Image) - OCR/QR" erscheint im Import-Dropdown
-- Review-Dialog vor Überweisungsanlegung: Daten können vor dem Speichern geprüft und korrigiert werden
-- Fortschrittsbalken mit Status-Text während der Verarbeitung
-- Clipboard und Webcam nur noch über Plugin-Menü (nicht über Import-Dialog)
-- SmartDetector: `detectFromStream()` funktioniert jetzt mit beliebigen Dateitypen (keine .tmp-Erkennungs-Fehler mehr)
-- Neue TransferDataHolder-Klasse zur Übergabe von TransferData + Konto an die Views
+- Hibiscus Import Dialog integration: "Invoice File (PDF/Image) - OCR/QR" appears in import dropdown
+- Review dialog before transfer creation: Data can be reviewed and corrected before saving
+- Progress bar with status text during processing
+- Clipboard and webcam only via plugin menu (not via import dialog)
+- SmartDetector: `detectFromStream()` now works with any file type (no more .tmp detection errors)
+- New TransferDataHolder class for passing TransferData + account to views
 
-### v2.2.0-test (Entwicklung)
+### v2.2.0-test (Development)
 
-- Importer-Integration für IORegistry (Test-Version)
-- Erfordert aktuelle Hibiscus-Entwicklungsversion
+- Importer integration for IORegistry (test version)
+- Requires current Hibiscus development version
 - Details: https://github.com/willuhn/hibiscus/commit/cbbce4ad6abafc652011e5c777338cc74b786d38
 
 ### v2.1.0
 
-- Hilfe-Button und Hilfetext-Dialog in den Einstellungen
-- Doppelklick-Editor für Schlüsselwörter (zeilenweise Eingabe)
-- Case-insensitive Schlüsselwortsuche
-- Multi-QR-Erkennung in PDFs (alle Seiten scannen)
-- i18n-Fallback für QR-Auswahldialog
-- OCR-Ansicht: "IBAN/BIC" zu "Empfänger-Konto" geändert
-- OCR-Ansicht: Label "Empfänger" zu "Name" geändert
-- QR-Code-Ansicht: Stadt-Eingabefeld entfernt
-- Einstellungen: Schlüsselwörter untereinander angeordnet
+- Help button and help text dialog in settings
+- Double-click editor for keywords (line-by-line input)
+- Case-insensitive keyword search
+- Multi-QR detection in PDFs (scan all pages)
+- i18n fallback for QR selection dialog
+- OCR view: Changed "IBAN/BIC" to "Recipient Account"
+- OCR view: Changed label "Recipient" to "Name"
+- QR code view: Removed city input field
+- Settings: Keywords arranged vertically
 
 ### v2.0.0
 
-- **Fusion von QRtransfer und OCRtransfer** zu einem Plugin
-- Automatische QR/OCR-Erkennung
-- Einheitliche Einstellungsansicht
-- Vollständige i18n-Unterstützung (Deutsch und Englisch)
+- **Fusion of QRtransfer and OCRtransfer** into one plugin
+- Automatic QR/OCR detection
+- Unified settings view
+- Full i18n support (German and English)
 
-## Lizenz
+## License
 
-GPL v3 - Siehe [LICENSE](LICENSE) für Details.
+GPL v3 - See [LICENSE](LICENSE) for details.
