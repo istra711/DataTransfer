@@ -305,6 +305,7 @@ public class SmartDetector {
         }
 
         // In temporaere Datei schreiben (fuer PDF-Behandlung noetig)
+        // Original-Extension beibehalten, damit detectFromFile() korrekt arbeitet
         File tempFile = File.createTempFile("datatransfer_", ".tmp");
         tempFile.deleteOnExit();
 
@@ -318,10 +319,66 @@ public class SmartDetector {
             }
             fos.close();
 
-            // Detection durchfuehren
-            return detectFromFile(tempFile);
+            // Detection: Zuerst QR-Code in allen Formaten versuchen
+            // (funktioniert fuer PDF und Bilder)
+            return detectFromAnyFile(tempFile);
         } finally {
             tempFile.delete();
         }
+    }
+
+    /**
+     * Erkennt aus einer Datei beliebigen Typs.
+     * Versucht zuerst QR-Code (PDF+Bild), dann Text-OCR, dann Bild-OCR.
+     */
+    private static TransferData detectFromAnyFile(File file) throws Exception {
+        // 1. QR-Code in PDF versuchen
+        try {
+            TransferData qrResult = tryQrCodeInPDF(file);
+            if (qrResult != null) {
+                qrResult.setQuelle(file.getAbsolutePath());
+                return qrResult;
+            }
+        } catch (Exception e) {
+            logger.info("Kein QR-Code in PDF: " + e.getMessage());
+        }
+
+        // 2. QR-Code in Bild versuchen
+        try {
+            BufferedImage image = ImageIO.read(file);
+            if (image != null) {
+                TransferData qrResult = tryQrCode(image);
+                if (qrResult != null) {
+                    qrResult.setQuelle(file.getAbsolutePath());
+                    return qrResult;
+                }
+
+                // 3. OCR auf Bild
+                TransferData ocrResult = tryOcr(image, file.getAbsolutePath());
+                if (ocrResult != null) {
+                    return ocrResult;
+                }
+            }
+        } catch (Exception e) {
+            logger.info("Bild-QR/OCR fehlgeschlagen: " + e.getMessage());
+        }
+
+        // 4. Text aus PDF extrahieren
+        try {
+            String text = extractTextFromPDF(file);
+            if (text != null && !text.trim().isEmpty()) {
+                InvoiceTextParser parser = new InvoiceTextParser();
+                TransferData data = parser.parse(text);
+                data.setQuelle(file.getAbsolutePath());
+                data.setSource(Source.OCR);
+                data.setOcrVerwendet(true);
+                return data;
+            }
+        } catch (Exception e) {
+            logger.info("Kein Text in PDF: " + e.getMessage());
+        }
+
+        // 5. OCR aus PDF-Seiten rendern
+        return tryOcrFromPDF(file);
     }
 }

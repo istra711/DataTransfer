@@ -8,6 +8,8 @@ import de.willuhn.jameica.gui.util.Headline;
 import de.willuhn.jameica.gui.util.SimpleContainer;
 import de.willuhn.jameica.gui.util.LabelGroup;
 import de.willuhn.jameica.hbci.datatransfer.model.TransferData;
+import de.willuhn.jameica.hbci.datatransfer.model.TransferDataHolder;
+import de.willuhn.jameica.hbci.rmi.Konto;
 import de.willuhn.jameica.system.Application;
 import de.willuhn.util.I18N;
 
@@ -33,6 +35,7 @@ public class InvoiceView extends AbstractView {
     private static I18N i18n;
 
     private TransferData transferData;
+    private Konto konto;
 
     private de.willuhn.jameica.gui.input.TextInput lastFocusedInput;
 
@@ -51,10 +54,16 @@ public class InvoiceView extends AbstractView {
         final I18N i = getI18n();
 
         Object context = getCurrentObject();
-        if (context instanceof TransferData) {
+        if (context instanceof TransferDataHolder) {
+            TransferDataHolder holder = (TransferDataHolder) context;
+            this.transferData = holder.getTransferData();
+            this.konto = holder.getKonto();
+        } else if (context instanceof TransferData) {
             this.transferData = (TransferData) context;
+            this.konto = null;
         } else {
             this.transferData = new TransferData();
+            this.konto = null;
         }
 
         GUI.getView().setTitle(i.tr("invoice.ocr.title"));
@@ -241,6 +250,10 @@ public class InvoiceView extends AbstractView {
             (de.willuhn.jameica.hbci.rmi.AuslandsUeberweisung)
             de.willuhn.jameica.hbci.Settings.getDBService()
                 .createObject(de.willuhn.jameica.hbci.rmi.AuslandsUeberweisung.class, null);
+
+        if (this.konto != null) {
+            u.setKonto(this.konto);
+        }
 
         u.setGegenkontoNummer(iban.trim());
         if (bic != null && !bic.trim().isEmpty()) {

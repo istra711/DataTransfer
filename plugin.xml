@@ -8,9 +8,9 @@
   <description>OCR and QR code based SEPA transfer plugin for Hibiscus</description>
   <license>GPL</license>
 
-  <requires jameica="2.0+" hibiscus="2.0+" />
-
-  <depends>hibiscus</depends>
+  <requires jameica="2.10.0+">
+    <import plugin="hibiscus" version="2.10.0+"/>
+  </requires>
 
   <classfinder>
     <include>datatransfer\.jar</include>

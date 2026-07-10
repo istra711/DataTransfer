@@ -9,7 +9,9 @@ import de.willuhn.jameica.gui.util.SimpleContainer;
 import de.willuhn.jameica.gui.util.LabelGroup;
 import de.willuhn.jameica.hbci.Settings;
 import de.willuhn.jameica.hbci.datatransfer.model.TransferData;
+import de.willuhn.jameica.hbci.datatransfer.model.TransferDataHolder;
 import de.willuhn.jameica.hbci.rmi.AuslandsUeberweisung;
+import de.willuhn.jameica.hbci.rmi.Konto;
 import de.willuhn.jameica.system.Application;
 import de.willuhn.util.ApplicationException;
 import de.willuhn.util.I18N;
@@ -35,11 +37,22 @@ public class QRCodeView extends AbstractView {
     }
 
     private TransferData transferData;
+    private Konto konto;
 
     @Override
     public void bind() throws Exception {
         final I18N i = getI18n();
-        this.transferData = (TransferData) getCurrentObject();
+
+        Object currentObject = getCurrentObject();
+
+        if (currentObject instanceof TransferDataHolder) {
+            TransferDataHolder holder = (TransferDataHolder) currentObject;
+            this.transferData = holder.getTransferData();
+            this.konto = holder.getKonto();
+        } else {
+            this.transferData = (TransferData) currentObject;
+            this.konto = null;
+        }
 
         if (transferData == null) {
             new Headline(getParent(), i.tr("error"));
@@ -114,6 +127,10 @@ public class QRCodeView extends AbstractView {
 
         AuslandsUeberweisung u = (AuslandsUeberweisung) Settings.getDBService()
             .createObject(AuslandsUeberweisung.class, null);
+
+        if (this.konto != null) {
+            u.setKonto(this.konto);
+        }
 
         u.setGegenkontoNummer(data.getIban());
         if (data.getBic() != null && !data.getBic().isEmpty()) {

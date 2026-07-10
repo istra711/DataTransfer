@@ -28,8 +28,8 @@ Kombiniertes Jameica/Hibiscus-Plugin zum Lesen von SEPA-Zahlungsdaten aus QR-Cod
 
 ## Voraussetzungen
 
-- Jameica 2.12.0+
-- Hibiscus 2.12.0+
+- Jameica 2.10.0+
+- Hibiscus 2.10.0+ (mit ClassFinder-Patch für globale Klassenerkennung)
 - Java 8+
 - Tesseract OCR (im Plugin enthalten)
 
@@ -43,16 +43,28 @@ Kombiniertes Jameica/Hibiscus-Plugin zum Lesen von SEPA-Zahlungsdaten aus QR-Cod
 
 ## Benutzung
 
-1. In Hibiscus zu **Zahlungsverkehr > Daten-Transfer** navigieren
+### Über Hibiscus Import-Dialog
+
+1. In Hibiscus zu **Überweisungen > Import** navigieren
+2. **"Rechnungs-Datei(PDF/Image) - OCR/QR"** auswählen
+3. Eine PDF- oder Bilddatei auswählen
+4. Konto auswählen (falls nicht bereits gesetzt)
+5. Daten werden erkannt und im Review-Dialog angezeigt
+6. Daten prüfen und bei Bedarf korrigieren
+7. Auf **Überweisung erstellen** klicken
+
+### Über Plugin-Menü
+
+1. Im Jameica-Menü **Daten-Transfer** wählen
 2. Eine der Eingabemethoden wählen:
-   - **Datei (PDF/Bild)** - Öffnet einen Dateidialog für PDF- oder Bilddateien
+   - **Datei** - Öffnet Dateidialog für PDF- oder Bilddateien
    - **Zwischenablage** - Liest Bild aus der Zwischenablage
-   - **Webcam (QR)** - Öffnet die Kamera zum QR-Code-Scanning
+   - **Webcam** - Öffnet die Kamera zum QR-Code-Scanning
 3. Das Plugin erkennt automatisch den Quellentyp:
-   - QR-Code gefunden → QR-Code-Überweisungsansicht wird geöffnet
-   - Kein QR-Code → OCR wird durchgeführt und die OCR-Überweisungsansicht wird geöffnet
+   - QR-Code gefunden → QR-Code-Review-Ansicht wird geöffnet
+   - Kein QR-Code → OCR-Review-Ansicht wird geöffnet
 4. Die erkannten Daten überprüfen und bei Bedarf korrigieren
-5. Auf **Überweisung anlegen** klicken, um einen Überweisungsentwurf in Hibiscus zu erstellen
+5. Auf **Überweisung erstellen** klicken
 
 ### Tastenkürzel
 
@@ -69,6 +81,9 @@ Kombiniertes Jameica/Hibiscus-Plugin zum Lesen von SEPA-Zahlungsdaten aus QR-Cod
 ```
 src/de/willuhn/jameica/hbci/datatransfer/
 ├── DataTransferPlugin.java          # Plugin-Einstiegspunkt
+├── DataTransferIO.java              # IORegistry-Registrierung (nur Datei-Importer)
+├── DataTransferBaseImporter.java    # Basis-Importer mit Review-Dialog
+├── DataTransferFileImporter.java    # Datei-Importer
 ├── OcrSettings.java                 # OCR-Einstellungen
 ├── action/
 │   ├── FileAction.java              # Datei-Eingabe (PDF/Bild) mit Auto-Erkennung
@@ -76,12 +91,13 @@ src/de/willuhn/jameica/hbci/datatransfer/
 │   ├── WebcamAction.java            # Webcam QR-Code-Scanning
 │   └── SettingsAction.java          # Einstellungsansicht öffnen
 ├── gui/
-│   ├── InvoiceView.java             # OCR-Ansicht mit Rohtext-Panel
-│   ├── QRCodeView.java              # QR-Code-Datenansicht
+│   ├── InvoiceView.java             # OCR-Review-Ansicht mit Rohtext-Panel
+│   ├── QRCodeView.java              # QR-Code-Review-Ansicht
 │   ├── InvoiceDebugView.java        # Debug-Ansicht für erkannte Daten
 │   └── SettingsView.java            # Einstellungsansicht mit Hilfe
 ├── model/
-│   └── TransferData.java            # Einheitliches Datenmodell
+│   ├── TransferData.java            # Einheitliches Datenmodell
+│   └── TransferDataHolder.java      # Hält TransferData + Konto für Views
 └── parser/
     ├── SmartDetector.java           # Auto-Erkennung (QR vs OCR)
     ├── OcrEngine.java               # Tesseract-Wrapper
@@ -115,6 +131,15 @@ Das Plugin verwendet einen intelligenten Erkennungsalgorithmus:
    - Nur QR-Code (kein OCR)
 
 ## Versionshistorie
+
+### v2.3.0
+
+- Hibiscus Import-Dialog Integration: "Rechnungs-Datei(PDF/Image) - OCR/QR" erscheint im Import-Dropdown
+- Review-Dialog vor Überweisungsanlegung: Daten können vor dem Speichern geprüft und korrigiert werden
+- Fortschrittsbalken mit Status-Text während der Verarbeitung
+- Clipboard und Webcam nur noch über Plugin-Menü (nicht über Import-Dialog)
+- SmartDetector: `detectFromStream()` funktioniert jetzt mit beliebigen Dateitypen (keine .tmp-Erkennungs-Fehler mehr)
+- Neue TransferDataHolder-Klasse zur Übergabe von TransferData + Konto an die Views
 
 ### v2.2.0-test (Entwicklung)
 
