@@ -71,26 +71,16 @@ pluginname/                    ← Genau EIN Ordner auf oberster Ebene
 2. ❌ Windows-Backslashes `\` im ZIP → Jameica prüft auf `/`
 3. ❌ Fehlende explizite Verzeichnis-Einträge → `plugin zip-file empty`
 4. ❌ Thin-JAR (nur Klassen) → Muss Fat-JAR sein
+5. ❌ PowerShell `Compress-Archive` → Erstellt keine Verzeichnis-Einträge, nutzt `\`
 
-**Richtige ZIP-Erstellung mit Python:**
-```python
-import zipfile, os
-src_dir = r'path/to/plugin_folder'
-zip_path = r'output.zip'
-with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-    dirs_added = set()
-    for root, dirs, files in os.walk(src_dir):
-        for d in dirs:
-            arcname = os.path.relpath(os.path.join(root, d), src_dir).replace(os.sep, '/') + '/'
-            if arcname not in dirs_added:
-                zipf.writestr(zipfile.ZipInfo(arcname), '')
-                dirs_added.add(arcname)
-    for root, dirs, files in os.walk(src_dir):
-        for file in files:
-            file_path = os.path.join(root, file)
-            arcname = os.path.relpath(file_path, src_dir).replace(os.sep, '/')
-            zipf.write(file_path, arcname)
+**Richtige ZIP-Erstellung mit Ant (empfohlen):**
+```bash
+ant -f build.xml clean zip
 ```
+Ant's `zip`-Task erstellt automatisch:
+- Explizite Verzeichnis-Einträge
+- Forward-Slashes (auch auf Windows)
+- Korrekte Plugin-Struktur
 
 ### 1. Icon-Pfade in plugin.xml
 ```xml
