@@ -67,6 +67,8 @@ This plugin requires a patched version of Hibiscus that uses a global ClassFinde
 
 The patch changes `IORegistry.java` to use `Application.getClassLoader().getClassFinder()` instead of the plugin-specific classloader, allowing all installed plugins to be discovered.
 
+**Note:** This patch has been submitted to the Hibiscus maintainer and will be included in a future official Hibiscus release. Once that version is available, the patched Hibiscus download will no longer be required.
+
 ## Installation
 
 1. Download the latest version from the [Releases](https://github.com/istra711/DataTransfer/releases) page
