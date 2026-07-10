@@ -1,5 +1,7 @@
 # SEPA Data Transfer Plugin for Jameica/Hibiscus
 
+[Deutsche Version](README_de.md)
+
 **Successor and fusion of the QRtransfer and OCRtransfer plugins.** This plugin replaces both individual plugins and provides a unified interface for all payment data imports.
 
 A combined Jameica/Hibiscus plugin for reading SEPA payment data from QR codes and OCR (invoices), with automatic source type detection.
