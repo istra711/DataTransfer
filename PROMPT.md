@@ -101,20 +101,36 @@ icon-close="datatransfer-icon.png"
 
 ### 3. Plugin.xml Struktur
 ```xml
-<plugin name="hbci.datatransfer" version="X.Y.Z"
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://www.willuhn.de/schema/jameica-plugin"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.willuhn.de/schema/jameica-plugin http://www.willuhn.de/schema/jameica-plugin-1.5.xsd"
+        name="hbci.datatransfer" version="X.Y.Z"
         class="de.willuhn.jameica.hbci.datatransfer.DataTransferPlugin">
   
-  <requires jameica="2.0+" hibiscus="2.0+" />
-  <depends>hibiscus</depends>  <!-- WICHTIG: Abhängigkeit deklarieren -->
+  <requires jameica="2.10.0+">
+    <import plugin="hibiscus" version="2.10.0+"/>
+  </requires>
   
   <classfinder>
     <include>datatransfer\.jar</include>
   </classfinder>
   
   <navigation>
-    <item id="hibiscus.navi.sepatransfer">
-      <item name="navi.transfer" icon-close="datatransfer-icon.png" ...>
+    <item id="datatransfer.navi" name="Daten-Transfer" icon-close="datatransfer-icon.png" icon-open="datatransfer-icon.png">
+      <item id="datatransfer.navi.file" name="Datei (PDF/Bild)" icon-close="file-icon.png" icon-open="file-icon.png"
+            action="de.willuhn.jameica.hbci.datatransfer.action.FileAction" />
+      ...
+    </item>
+  </navigation>
+  
+  <extension point="jameica.extension">
+    <class>de.willuhn.jameica.hbci.datatransfer.DataTransferIO</class>
+  </extension>
+</plugin>
 ```
+
+**Wichtig:** `<depends>` NICHT verwenden → `<requires><import>` verwenden!
 
 ### 4. Kompilierung
 - JDK 17 verwenden (`C:\Program Files\Java\jdk-17.0.0.1`)
@@ -159,27 +175,51 @@ icon-close="datatransfer-icon.png"
 - Log: `G:\jameica_portable_test\Data\jameica\jameica.log`
 - Config: `C:\Users\istra\.jameica.properties` (shared mit Produktion!)
 
+## Funktionierende Vorlage
+
+Es gibt eine funktionierende Plugin-ZIP im Repo:
+- `hbci.datatransfer.zip` (im Projekt-Root)
+- Enthält die alte Version (v2.0.0) mit `datatransfer.jar` (Fat-JAR, 8MB)
+- Kann als Vorlage dienen: ZIP entpacken, `plugin.xml` ersetzen, neu ZIPpen
+
+**Achtung:** Die JAR in dieser ZIP heißt `datatransfer.jar` (nicht `hbci.datatransfer.jar`)
+
 ## Build-Prozess
 
-**Plugin mit Ant bauen (empfohlen):**
+### Schnell-Build (empfohlen für kleine Änderungen)
+
+Von der funktionierenden Installation im Produktions-Verzeichnis kopieren:
+```powershell
+# 1. Funktionierende Installation als Vorlage
+$src = "G:\jameica_portable_V1\jameica\plugins\hbci.datatransfer"
+$dst = "C:\Users\istra\Documents\claude_ps\DataTransfer\release"
+
+# 2. Kopieren
+Copy-Item $src $dst -Recurse
+
+# 3. Nur plugin.xml ersetzen (falls geändert)
+Copy-Item "C:\Users\istra\Documents\claude_ps\DataTransfer\plugin.xml" "$dst\plugin.xml"
+
+# 4. ZIP mit Ant erstellen (NICHT Compress-Archive!)
+# Oder: Die funktionierende ZIP aus dem Repo nehmen und plugin.xml ersetzen
+```
+
+### Voll-Build mit Ant
+
 ```bash
+# Ant muss konfiguriert sein (jameica.home in build.xml prüfen!)
 ant -f build.xml clean zip
 ```
 
-Dies erstellt:
+**Voraussetzung:** `build.xml` muss `jameica.home` auf das richtige Jameica-Verzeichnis zeigen.
+
+### Was Ant erstellt:
 - `dist/datatransfer.jar` - Fat-JAR mit allen Klassen
 - `dist/hbci.datatransfer-X.Y.Z.zip` - Installations-ZIP mit korrekter Struktur
 
-**Ant's `zip`-Task erstellt automatisch:**
-- Explizite Verzeichnis-Einträge
-- Forward-Slashes (auch auf Windows)
-- Korrekte Plugin-Struktur
-
-**ZIP manuell erstellen (nur wenn nötig):**
-```powershell
-# NICHT verwenden: Compress-Archive (erstellt keine Verzeichnis-Einträge, nutzt \)
-# Verwende stattdessen Ant oder 7-Zip mit korrekten Einstellungen
-```
+### ⚠️ NICHT verwenden:
+- PowerShell `Compress-Archive` → Erstellt keine Verzeichnis-Einträge, nutzt `\`
+- Manuelle ZIP-Erstellung ohne explizite Verzeichnis-Einträge
 
 ## Abhängigkeiten (lib/)
 
