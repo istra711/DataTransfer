@@ -50,6 +50,48 @@ DataTransfer/
 
 ## Wichtige Jameica-Regeln
 
+### 0. Plugin-ZIP Struktur (KRITISCH!)
+
+Die ZIP-Datei muss einer strengen Struktur folgen:
+
+```
+pluginname/                    ← Genau EIN Ordner auf oberster Ebene
+├── plugin.xml                 ← Muss im Hauptordner liegen
+├── datatransfer.jar           ← Fat-JAR (8MB, nicht Thin-JAR 75KB!)
+├── img/                       ← Explizite Verzeichnis-Einträge nötig!
+│   └── icon.png
+├── lang/
+│   └── messages.properties
+└── lib/
+    └── dependency.jar
+```
+
+**Fehler die vermieden werden müssen:**
+1. ❌ Dateien direkt auf oberster Ebene → `contains invalid file`
+2. ❌ Windows-Backslashes `\` im ZIP → Jameica prüft auf `/`
+3. ❌ Fehlende explizite Verzeichnis-Einträge → `plugin zip-file empty`
+4. ❌ Thin-JAR (nur Klassen) → Muss Fat-JAR sein
+
+**Richtige ZIP-Erstellung mit Python:**
+```python
+import zipfile, os
+src_dir = r'path/to/plugin_folder'
+zip_path = r'output.zip'
+with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+    dirs_added = set()
+    for root, dirs, files in os.walk(src_dir):
+        for d in dirs:
+            arcname = os.path.relpath(os.path.join(root, d), src_dir).replace(os.sep, '/') + '/'
+            if arcname not in dirs_added:
+                zipf.writestr(zipfile.ZipInfo(arcname), '')
+                dirs_added.add(arcname)
+    for root, dirs, files in os.walk(src_dir):
+        for file in files:
+            file_path = os.path.join(root, file)
+            arcname = os.path.relpath(file_path, src_dir).replace(os.sep, '/')
+            zipf.write(file_path, arcname)
+```
+
 ### 1. Icon-Pfade in plugin.xml
 ```xml
 <!-- FALSCH: img/ Prefix wird nicht aufgelöst -->
@@ -129,19 +171,18 @@ icon-close="datatransfer-icon.png"
 
 ## Build-Prozess
 
-1. Java-Dateien kompilieren (siehe Kompilierung oben)
-2. JAR erstellen:
+1. Java-Dateien kompilieren (Ant: `ant -f build.xml clean dist-all`)
+2. Oder manuell:
 ```powershell
 & "C:\Program Files\Java\jdk-17.0.0.1\bin\jar.exe" cf dist\hbci.datatransfer\datatransfer.jar `
   -C build\classes . -C build lang
 ```
-3. Plugin-Ordner strukturieren:
-   - `datatransfer.jar`
-   - `plugin.xml`
-   - `img/` (Icons)
-   - `lang/` (Sprachdateien)
-   - `lib/` (Abhängigkeiten)
-4. ZIP erstellen für Distribution
+3. Plugin-Ordner strukturieren (wie oben beschrieben)
+4. **ZIP mit Python erstellen** (nicht PowerShell `Compress-Archive`!):
+```python
+# Siehe oben - Explizite Verzeichnis-Einträge + Forward-Slashes
+```
+5. Oder von funktionierender Installation kopieren und nur `plugin.xml` ersetzen
 
 ## Abhängigkeiten (lib/)
 
@@ -157,10 +198,18 @@ icon-close="datatransfer-icon.png"
 git add -A
 git commit -m "Beschreibung"
 git push
-git tag -a vX.Y.Z -m "Release vX.Y.Z"
-git push origin vX.Y.Z
-gh release create vX.Y.Z --title "vX.Y.Z" --notes "..."
-gh release upload vX.Y.Z dist\hbci.datatransfer.zip
+```
+
+**Release erstellen:**
+```bash
+gh release create vX.Y.Z --title "vX.Y.Z" --notes "Release notes"
+gh release upload vX.Y.Z hbci.datatransfer-X.Y.Z.zip
+gh release upload vX.Y.Z hibiscus-patched.zip
+```
+
+**Repository sichtbarkeit:**
+```bash
+gh repo edit istra711/DataTransfer --visibility public --accept-visibility-change-consequences
 ```
 
 ## Hibiscus API - Wichtige Klassen
@@ -197,10 +246,31 @@ u.store();
 - Case-insensitive Schlüsselwortsuche
 - Hilfe-Button in Einstellungen
 - Doppelklick-Editor für Schlüsselwörter
-
-### In Arbeit / Test
-- Importer-Integration (IORegistry)
-- Erfordert Hibiscus-Commit `cbbce4a`
+- Importer-Integration (IORegistry) - funktioniert mit gepatchtem Hibiscus
+- Hibiscus Import-Dialog Integration (v2.3.0)
 
 ### Nicht implementiert
 - Webcam-Funktion (nur QR, kein OCR)
+
+## Bekannte Probleme und Lösungen
+
+### Problem: Plugin-ZIP wird nicht erkannt
+**Ursache:** Falsche ZIP-Struktur (Dateien auf oberster Ebene, fehlende Verzeichnis-Einträge, Thin-JAR).
+**Lösung:** Siehe "0. Plugin-ZIP Struktur" oben. Fat-JAR verwenden, explizite Verzeichnis-Einträge, Forward-Slashes.
+
+### Problem: Importer wird nicht erkannt
+**Ursache:** Jameica 2.12.0 verwendet ClassFinder nur innerhalb des Hibiscus-Plugins.
+**Lösung:** Hibiscus-Commit `cbbce4a` nötig (globaler ClassFinder).
+**Workaround:** Menu-Lösung unter `Zahlungsverkehr > Daten-Transfer` verwenden.
+
+### Problem: NoClassDefFoundError bei DataTransferIO
+**Ursache:** DataTransfer wird VOR Hibiscus geladen.
+**Lösung:** `<requires><import plugin="hibiscus"/></requires>` in plugin.xml.
+
+### Problem: Icons nicht sichtbar
+**Ursache:** `img/` Prefix in plugin.xml Referenzen.
+**Lösung:** Nur Dateinamen verwenden, Jameica sucht automatisch in Unterverzeichnissen.
+
+### Problem: Umlaute in Dialogen kaputt
+**Ursache:** Direkte Umlaute in Properties-Dateien.
+**Lösung:** Escape-Sequenzen verwenden oder Properties als UTF-8 speichern.
