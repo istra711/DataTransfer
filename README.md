@@ -1,8 +1,26 @@
 # SEPA Data Transfer Plugin for Jameica/Hibiscus
 
+**Nachfolger und Fusion des QRtransfer-Plugins und OCRtransfer-Plugins.** Dieses Plugin ersetzt beide Einzel-Plugins und bietet eine einheitliche Oberfläche für alle Zahlungsdaten-Imports.
+
 Kombiniertes Jameica/Hibiscus-Plugin zum Lesen von SEPA-Zahlungsdaten aus QR-Codes und OCR (Rechnungen), mit automatischer Erkennung des Quellentyps.
 
+## Was dieses Plugin ersetzt
+
+| Altes Plugin | Funktion | Status |
+|-------------|----------|--------|
+| **QRtransfer** | QR-Code-Import (EPC/EMV) | ❌ Nicht mehr nötig |
+| **OCRtransfer** | OCR-Import (Rechnungen) | ❌ Nicht mehr nötig |
+| **DataTransfer** | Beides in einem + Import-Dialog | ✅ Dieses Plugin |
+
 ## Features
+
+### Was dieses Plugin besser macht als die Einzel-Plugins
+
+- **Ein Plugin statt zwei**: Installiert einmal, statt QRtransfer UND OCRtransfer separat zu installieren
+- **Automatische Erkennung**: Keine manuelle Auswahl nötig - das Plugin erkennt automatisch ob QR-Code oder OCR
+- **Hibiscus Import-Dialog**: Erscheint direkt im Import-Menü von Hibiscus ("Rechnungs-Datei(PDF/Image) - OCR/QR")
+- **Review-Dialog**: Daten können vor dem Speichern geprüft und korrigiert werden
+- **Einheitliche Einstellungen**: Keyword-Suche für beide Modi in einer Einstellungsansicht
 
 - **Automatische Erkennung**: Erkennt automatisch QR-Code (EPC/EMV) oder OCR-Text
 - **Eingabemethoden**:
@@ -161,8 +179,7 @@ Das Plugin verwendet einen intelligenten Erkennungsalgorithmus:
 
 ### v2.0.0
 
-- Erstveröffentlichung des kombinierten Plugins
-- Zusammenführung von OCRtransfer und QRtransfer
+- **Fusion von QRtransfer und OCRtransfer** zu einem Plugin
 - Automatische QR/OCR-Erkennung
 - Einheitliche Einstellungsansicht
 - Vollständige i18n-Unterstützung (Deutsch und Englisch)
