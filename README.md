@@ -24,25 +24,49 @@ A combined Jameica/Hibiscus plugin for reading SEPA payment data from QR codes a
 - **Review dialog**: Data can be reviewed and corrected before saving
 - **Unified settings**: Keyword search for both modes in one settings view
 
-- **Automatic detection**: Automatically detects QR code (EPC/EMV) or OCR text
-- **Input methods**:
-  - **File** - Load PDF invoices or image files (PNG, JPG, BMP, TIFF)
-  - **Clipboard** - Read images directly from clipboard
-  - **Webcam** - Scan QR codes live with camera
-- **QR code support**:
-  - EPC (BCD) format - European Payment Council standard format
-  - EMV (TLV) format - EMV standard from payment terminals
-  - Multi-QR detection: Automatically find and select multiple QR codes in a PDF
-- **OCR support**:
-  - Tesseract 5.5.2 (via tess4j 5.19.0)
-  - PDF text extraction (direct and OCR fallback)
-  - Configurable OCR settings (OEM, PSM, DPI, language, whitelist/blacklist)
-- **Keywords**:
-  - Recipient keywords: Automatic detection of recipient name
-  - Purpose keywords: Automatic detection of payment purpose
-  - Case-insensitive search
-  - Extended editor with double-click (line-by-line input)
-- **SEPA Transfer**: Direct creation of transfer drafts in Hibiscus
+![Navigation](img/screenshots/navigation.png)
+
+### Input Methods
+
+- **File** - Load PDF invoices or image files (PNG, JPG, BMP, TIFF)
+- **Clipboard** - Read images directly from clipboard
+- **Webcam** - Scan QR codes live with camera
+
+![Plugin Menu](img/screenshots/menu.png)
+
+### QR Code Support
+
+- EPC (BCD) format - European Payment Council standard format
+- EMV (TLV) format - EMV standard from payment terminals
+- Multi-QR detection: Automatically find and select multiple QR codes in a PDF
+
+![QR Code Selection](img/screenshots/qr-selector.png)
+
+### OCR Support
+
+- Tesseract 5.5.2 (via tess4j 5.19.0)
+- PDF text extraction (direct and OCR fallback)
+- Configurable OCR settings (OEM, PSM, DPI, language, whitelist/blacklist)
+
+![OCR Settings](img/screenshots/ocr-settings.png)
+
+### Keywords
+
+- Recipient keywords: Automatic detection of recipient name
+- Purpose keywords: Automatic detection of payment purpose
+- Case-insensitive search
+- Extended editor with double-click (line-by-line input)
+
+![Keyword Editor](img/screenshots/keyword-editor.png)
+
+### SEPA Transfer
+
+Direct creation of transfer drafts in Hibiscus
+
+![OCR Transfer View](img/screenshots/ocr-transfer.png)
+
+### Additional Features
+
 - **Settings**: Help button with detailed explanation of all options
 - **Internationalization**: Full German and English language support
 
@@ -85,6 +109,9 @@ The required changes have been proposed by the Hibiscus developer (see [Hibiscus
 
 1. In Hibiscus, navigate to **Transfers > Import**
 2. Select **"Invoice File (PDF/Image) - OCR/QR"**
+
+![Import Dialog](img/screenshots/import-dialog.png)
+
 3. Select a PDF or image file
 4. Select account (if not already set)
 5. Data is detected and displayed in the review dialog

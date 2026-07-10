@@ -22,25 +22,49 @@ Kombiniertes Jameica/Hibiscus-Plugin zum Lesen von SEPA-Zahlungsdaten aus QR-Cod
 - **Review-Dialog**: Daten können vor dem Speichern geprüft und korrigiert werden
 - **Einheitliche Einstellungen**: Keyword-Suche für beide Modi in einer Einstellungsansicht
 
-- **Automatische Erkennung**: Erkennt automatisch QR-Code (EPC/EMV) oder OCR-Text
-- **Eingabemethoden**:
-  - **Datei** - PDF-Rechnungen oder Bilddateien laden (PNG, JPG, BMP, TIFF)
-  - **Zwischenablage** - Bilder direkt aus der Zwischenablage einlesen
-  - **Webcam** - QR-Codes live mit der Kamera scannen
-- **QR-Code-Unterstützung**:
-  - EPC (BCD) Format - Europäisches Payment Council Standardformat
-  - EMV (TLV) Format - EMV-Standard aus Zahlungsterminalen
-  - Multi-QR-Erkennung: Mehrere QR-Codes in einer PDF automatisch finden und auswählen
-- **OCR-Unterstützung**:
-  - Tesseract 5.5.2 (via tess4j 5.19.0)
-  - PDF-Textextraktion (direkt und OCR-Fallback)
-  - Konfigurierbare OCR-Einstellungen (OEM, PSM, DPI, Sprache, Whitelist/Blacklist)
-- **Schlüsselwörter**:
-  - Empfänger-Keywords: Automatische Erkennung des Empfängernamens
-  - Verwendungszweck-Keywords: Automatische Erkennung des Verwendungszwecks
-  - Case-insensitive Suche
-  - Erweiterter Editor mit Doppelklick (zeilenweise Eingabe)
-- **SEPA-Überweisung**: Direkte Erstellung von Überweisungsentwürfen in Hibiscus
+![Navigation](img/screenshots/navigation.png)
+
+### Eingabemethoden
+
+- **Datei** - PDF-Rechnungen oder Bilddateien laden (PNG, JPG, BMP, TIFF)
+- **Zwischenablage** - Bilder direkt aus der Zwischenablage einlesen
+- **Webcam** - QR-Codes live mit der Kamera scannen
+
+![Plugin-Menü](img/screenshots/menu.png)
+
+### QR-Code-Unterstützung
+
+- EPC (BCD) Format - Europäisches Payment Council Standardformat
+- EMV (TLV) Format - EMV-Standard aus Zahlungsterminalen
+- Multi-QR-Erkennung: Mehrere QR-Codes in einer PDF automatisch finden und auswählen
+
+![QR-Code-Auswahl](img/screenshots/qr-selector.png)
+
+### OCR-Unterstützung
+
+- Tesseract 5.5.2 (via tess4j 5.19.0)
+- PDF-Textextraktion (direkt und OCR-Fallback)
+- Konfigurierbare OCR-Einstellungen (OEM, PSM, DPI, Sprache, Whitelist/Blacklist)
+
+![OCR-Einstellungen](img/screenshots/ocr-settings.png)
+
+### Schlüsselwörter
+
+- Empfänger-Keywords: Automatische Erkennung des Empfängernamens
+- Verwendungszweck-Keywords: Automatische Erkennung des Verwendungszwecks
+- Case-insensitive Suche
+- Erweiterter Editor mit Doppelklick (zeilenweise Eingabe)
+
+![Keyword-Editor](img/screenshots/keyword-editor.png)
+
+### SEPA-Überweisung
+
+Direkte Erstellung von Überweisungsentwürfen in Hibiscus
+
+![OCR-Überweisungsansicht](img/screenshots/ocr-transfer.png)
+
+### Weitere Features
+
 - **Einstellungen**: Hilfe-Button mit detaillierter Erläuterung aller Optionen
 - **Internationalisierung**: Vollständige deutsche und englische Sprachunterstützung
 
@@ -83,6 +107,9 @@ Die erforderlichen Änderungen wurden vom Hibiscus-Entwickler vorgeschlagen (sie
 
 1. In Hibiscus zu **Überweisungen > Import** navigieren
 2. **"Rechnungs-Datei(PDF/Image) - OCR/QR"** auswählen
+
+![Import-Dialog](img/screenshots/import-dialog.png)
+
 3. Eine PDF- oder Bilddatei auswählen
 4. Konto auswählen (falls nicht bereits gesetzt)
 5. Daten werden erkannt und im Review-Dialog angezeigt
