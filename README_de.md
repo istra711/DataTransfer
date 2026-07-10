@@ -65,7 +65,9 @@ Dieses Plugin erfordert eine gepatchte Version von Hibiscus, die einen globalen 
 
 Der Patch ändert `IORegistry.java`, um `Application.getClassLoader().getClassFinder()` statt des plugin-spezifischen ClassLoaders zu verwenden, sodass alle installierten Plugins gefunden werden können.
 
-**Hinweis:** Die erforderlichen Änderungen wurden vom Hibiscus-Entwickler vorgeschlagen (siehe [Hibiscus Commit cbbce4ad](https://github.com/willuhn/hibiscus/commit/cbbce4ad6abafc652011e5c777338cc74b786d38)) und werden in einer zukünftigen offiziellen Hibiscus-Version enthalten sein. Sobald diese Version verfügbar ist, wird die gepatchte Hibiscus-Version nicht mehr benötigt.
+**Hinweis:** Die gepatchte Hibiscus-Version ist **nicht zwingend erforderlich**. Das Plugin funktioniert auch mit dem derzeitigen offiziellen Hibiscus-Release, aber die Importer-Funktionen (z.B. "Rechnungs-Datei(PDF/Image) - OCR/QR" im Import-Dialog) werden nicht angezeigt. Sie können das Plugin weiterhin über das Menü verwenden (Datei > Rechnungsdatei laden, etc.).
+
+Die erforderlichen Änderungen wurden vom Hibiscus-Entwickler vorgeschlagen (siehe [Hibiscus Commit cbbce4ad](https://github.com/willuhn/hibiscus/commit/cbbce4ad6abafc652011e5c777338cc74b786d38)) und werden in einer zukünftigen offiziellen Hibiscus-Version enthalten sein. Sobald diese Version verfügbar ist, wird die gepatchte Hibiscus-Version nicht mehr benötigt.
 
 ## Installation
 
