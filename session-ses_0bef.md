@@ -33,32 +33,17 @@ pluginname/                    ← Genau EIN Ordner auf oberster Ebene
 3. ❌ Fehlende explizite Verzeichnis-Einträge → `plugin zip-file empty`
 4. ❌ Thin-JAR (nur Klassen) → Muss Fat-JAR sein mit allen gebündelten Klassen
 
-**Richtige Erstellung mit Python:**
-```python
-import zipfile
-import os
-
-src_dir = r'path/to/plugin_folder'
-zip_path = r'output.zip'
-
-with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-    # 1. Explizite Verzeichnis-Einträge hinzufügen
-    dirs_added = set()
-    for root, dirs, files in os.walk(src_dir):
-        for d in dirs:
-            dir_path = os.path.join(root, d)
-            arcname = os.path.relpath(dir_path, src_dir).replace(os.sep, '/') + '/'
-            if arcname not in dirs_added:
-                zipf.writestr(zipfile.ZipInfo(arcname), '')
-                dirs_added.add(arcname)
-    
-    # 2. Dateien hinzufügen mit Forward-Slashes
-    for root, dirs, files in os.walk(src_dir):
-        for file in files:
-            file_path = os.path.join(root, file)
-            arcname = os.path.relpath(file_path, src_dir).replace(os.sep, '/')
-            zipf.write(file_path, arcname)
+### Richtige Erstellung mit Ant (empfohlen):
+```bash
+ant -f build.xml clean zip
 ```
+
+Ant's `zip`-Task erstellt automatisch:
+- Explizite Verzeichnis-Einträge
+- Forward-Slashes (auch auf Windows)
+- Korrekte Plugin-Struktur
+
+**NICHT verwenden:** PowerShell's `Compress-Archive` (erstellt keine Verzeichnis-Einträge, nutzt `\`)
 
 ### Jameica ZippedPlugin.java Validierung
 

@@ -171,18 +171,25 @@ icon-close="datatransfer-icon.png"
 
 ## Build-Prozess
 
-1. Java-Dateien kompilieren (Ant: `ant -f build.xml clean dist-all`)
-2. Oder manuell:
+**Plugin mit Ant bauen (empfohlen):**
+```bash
+ant -f build.xml clean zip
+```
+
+Dies erstellt:
+- `dist/datatransfer.jar` - Fat-JAR mit allen Klassen
+- `dist/hbci.datatransfer-X.Y.Z.zip` - Installations-ZIP mit korrekter Struktur
+
+**Ant's `zip`-Task erstellt automatisch:**
+- Explizite Verzeichnis-Einträge
+- Forward-Slashes (auch auf Windows)
+- Korrekte Plugin-Struktur
+
+**ZIP manuell erstellen (nur wenn nötig):**
 ```powershell
-& "C:\Program Files\Java\jdk-17.0.0.1\bin\jar.exe" cf dist\hbci.datatransfer\datatransfer.jar `
-  -C build\classes . -C build lang
+# NICHT verwenden: Compress-Archive (erstellt keine Verzeichnis-Einträge, nutzt \)
+# Verwende stattdessen Ant oder 7-Zip mit korrekten Einstellungen
 ```
-3. Plugin-Ordner strukturieren (wie oben beschrieben)
-4. **ZIP mit Python erstellen** (nicht PowerShell `Compress-Archive`!):
-```python
-# Siehe oben - Explizite Verzeichnis-Einträge + Forward-Slashes
-```
-5. Oder von funktionierender Installation kopieren und nur `plugin.xml` ersetzen
 
 ## Abhängigkeiten (lib/)
 
