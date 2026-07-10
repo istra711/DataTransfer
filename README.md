@@ -49,9 +49,23 @@ A combined Jameica/Hibiscus plugin for reading SEPA payment data from QR codes a
 ## Requirements
 
 - Jameica 2.10.0+
-- Hibiscus 2.10.0+ (with ClassFinder patch for global class detection)
+- Hibiscus 2.10.0+ (**with ClassFinder patch** - see below)
 - Java 8+
 - Tesseract OCR (included in plugin)
+
+### Hibiscus ClassFinder Patch
+
+This plugin requires a patched version of Hibiscus that uses a global ClassFinder for plugin detection. The standard Hibiscus only finds plugins loaded by its own classloader, which prevents external plugins like DataTransfer from appearing in the Import dialog.
+
+**Download the patched Hibiscus:** [hibiscus-patched.zip](https://github.com/istra711/DataTransfer/releases/download/v2.3.0/hibiscus-patched.zip)
+
+**Installation:**
+1. Back up your existing `hibiscus.jar` from `jameica/plugins/hibiscus/`
+2. Extract the downloaded `hibiscus-patched.zip`
+3. Replace `hibiscus.jar` in `jameica/plugins/hibiscus/` with the patched version
+4. Restart Jameica
+
+The patch changes `IORegistry.java` to use `Application.getClassLoader().getClassFinder()` instead of the plugin-specific classloader, allowing all installed plugins to be discovered.
 
 ## Installation
 
