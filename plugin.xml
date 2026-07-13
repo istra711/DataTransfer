@@ -13,7 +13,7 @@
   </requires>
 
   <classfinder>
-    <include>hbci\.datatransfer\.jar</include>
+    <include>datatransfer\.jar</include>
     <include>.*\.class</include>
   </classfinder>
 
