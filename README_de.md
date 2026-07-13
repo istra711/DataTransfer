@@ -195,6 +195,12 @@ Das Plugin verwendet einen intelligenten Erkennungsalgorithmus:
 
 ## Versionshistorie
 
+### v2.4.0
+
+- **Sauberes Build**: Verschachtelte `datatransfer.jar` innerhalb der Haupt-JAR entfernt — behebt Classloader-Konflikte, bei denen Jameica alte Klassen aus der inneren JAR geladen hat
+- **Classfinder-Regex korrigiert**: `plugin.xml` matched jetzt den tatsächlichen JAR-Namen (`hbci.datatransfer.jar`) statt des alten inneren JAR-Namens
+- **Webcam-Zuverlässigkeit**: Open-Timeout auf 20 Sekunden erhöht, globaler ClassLoader (`Application.getClassLoader()`) für Webcam-JavaCV-Klassen, verbessertes Error-Logging mit `System.err.println` + `Logger.error` in allen Fehlernpfaden
+
 ### v2.3.0
 
 - Hibiscus Import-Dialog Integration: "Rechnungs-Datei(PDF/Image) - OCR/QR" erscheint im Import-Dropdown

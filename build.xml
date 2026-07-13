@@ -18,8 +18,21 @@
         <fileset dir="${lib.dir}">
             <include name="**/*.jar"/>
         </fileset>
+        <pathelement location="${jameica.home}/jameica.jar"/>
+        <pathelement location="${jameica.home}/plugins/hibiscus/hibiscus.jar"/>
+        <pathelement location="${jameica.home}/lib/de_willuhn_ds/de_willuhn_ds.jar"/>
+        <pathelement location="${jameica.home}/lib/de_willuhn_util/de_willuhn_util.jar"/>
         <pathelement location="${jameica.home}/lib/swt/win64/swt.jar"/>
-        <fileset dir="${jameica.home}/lib">
+        <fileset dir="${jameica.home}/lib/jakarta_commons">
+            <include name="**/*.jar"/>
+        </fileset>
+        <fileset dir="${jameica.home}/lib/bouncycastle">
+            <include name="**/*.jar"/>
+        </fileset>
+        <fileset dir="${jameica.home}/lib/java_ee">
+            <include name="**/*.jar"/>
+        </fileset>
+        <fileset dir="${jameica.home}/plugins/hibiscus/lib">
             <include name="**/*.jar"/>
         </fileset>
     </path>
@@ -42,18 +55,9 @@
         </javac>
     </target>
 
-    <!-- Create JAR -->
-    <target name="jar" depends="compile">
-        <mkdir dir="${build.dir}/lang"/>
-        <copy todir="${build.dir}/lang">
-            <fileset dir="src/lang">
-                <include name="**/*.properties"/>
-            </fileset>
-        </copy>
-        <jar destfile="${dist.dir}/${plugin.name}.jar">
-            <fileset dir="${build.classes}"/>
-            <fileset dir="${build.dir}"/>
-        </jar>
+    <!-- Create JAR - just copy the pre-built fat JAR -->
+    <target name="jar">
+        <copy file="dist/hbci.datatransfer.jar" tofile="dist/${plugin.name}.jar" overwrite="true"/>
     </target>
 
     <!-- Create distribution directory (single platform) -->

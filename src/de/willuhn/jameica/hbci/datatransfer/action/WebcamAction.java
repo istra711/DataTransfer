@@ -13,6 +13,7 @@ import de.willuhn.jameica.hbci.datatransfer.parser.EpcParser;
 import de.willuhn.jameica.hbci.datatransfer.parser.ParserException;
 import de.willuhn.jameica.hbci.datatransfer.parser.QrCodeParser;
 import de.willuhn.jameica.system.Application;
+import de.willuhn.logging.Logger;
 import de.willuhn.util.ApplicationException;
 import de.willuhn.util.I18N;
 
@@ -26,6 +27,14 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class WebcamAction implements Action {
+
+    private static ClassLoader getGlobalClassLoader() {
+        return Application.getClassLoader();
+    }
+
+    private static Class<?> forName(String name) throws ClassNotFoundException {
+        return Class.forName(name, true, getGlobalClassLoader());
+    }
 
     private static I18N i18n;
 
@@ -57,14 +66,18 @@ public class WebcamAction implements Action {
 
         Object capture;
         try {
-            Class<?> captureClass = Class.forName("org.bytedeco.opencv.opencv_videoio.VideoCapture");
+            Class<?> captureClass = forName("org.bytedeco.opencv.opencv_videoio.VideoCapture");
             capture = captureClass.getConstructor().newInstance();
 
             final Object cap = capture;
             final int devIdx = deviceIndex;
+            Logger.info("webcam: opening device " + devIdx + " with class " + cap.getClass().getName());
             java.util.concurrent.FutureTask<Boolean> openTask = new java.util.concurrent.FutureTask<>(() -> {
+                Logger.info("webcam: calling open(" + devIdx + ")...");
                 cap.getClass().getMethod("open", int.class).invoke(cap, devIdx);
-                return (Boolean) cap.getClass().getMethod("isOpened").invoke(cap);
+                boolean opened = (Boolean) cap.getClass().getMethod("isOpened").invoke(cap);
+                Logger.info("webcam: isOpened = " + opened);
+                return opened;
             });
             Thread openThread = new Thread(openTask);
             openThread.setDaemon(true);
@@ -72,21 +85,28 @@ public class WebcamAction implements Action {
 
             Boolean isOpened;
             try {
-                isOpened = openTask.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                isOpened = openTask.get(20, java.util.concurrent.TimeUnit.SECONDS);
             } catch (java.util.concurrent.TimeoutException te) {
+                System.err.println("WEBCAM ERROR: open() timed out after 20s");
+                Logger.error("webcam: open() timed out after 20s", te);
                 JOptionPane.showMessageDialog(null,
-                    i.tr("webcam.cannot.start", "open() timed out after 5s"),
+                    i.tr("webcam.cannot.start", "open() timed out after 20s"),
                     i.tr("qrcode.scan.title"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
             if (!isOpened) {
+                System.err.println("WEBCAM ERROR: isOpened() returned false for device " + deviceIndex);
+                Logger.error("webcam: isOpened() returned false for device " + deviceIndex);
                 JOptionPane.showMessageDialog(null,
                     i.tr("webcam.cannot.start", "isOpened() returned false"),
                     i.tr("qrcode.scan.title"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
         } catch (Throwable t) {
+            System.err.println("WEBCAM ERROR: " + t.getClass().getName() + ": " + t.getMessage());
+            t.printStackTrace();
+            Logger.error("webcam: capture.open failed: " + t.getMessage(), t);
             Throwable cause = t.getCause() != null ? t.getCause() : t;
             String msg = cause.getMessage() != null ? cause.getMessage() : cause.getClass().getName();
             JOptionPane.showMessageDialog(null,
@@ -125,7 +145,7 @@ public class WebcamAction implements Action {
 
         Thread scanThread = new Thread(() -> {
             try {
-                Class<?> matClass = Class.forName("org.bytedeco.opencv.opencv_core.Mat");
+                Class<?> matClass = forName("org.bytedeco.opencv.opencv_core.Mat");
 
                 Method readMethod = captureRef.getClass().getMethod("read", matClass);
                 Method releaseCaptureMethod = captureRef.getClass().getMethod("release");
@@ -136,9 +156,9 @@ public class WebcamAction implements Action {
                 Method rowsMethod = matClass.getMethod("rows");
                 Method colsMethod = matClass.getMethod("cols");
 
-                Class<?> toMatConverterClass = Class.forName("org.bytedeco.javacv.OpenCVFrameConverter$ToMat");
-                Class<?> frameClass = Class.forName("org.bytedeco.javacv.Frame");
-                Class<?> java2dConverterClass = Class.forName("org.bytedeco.javacv.Java2DFrameConverter");
+                Class<?> toMatConverterClass = forName("org.bytedeco.javacv.OpenCVFrameConverter$ToMat");
+                Class<?> frameClass = forName("org.bytedeco.javacv.Frame");
+                Class<?> java2dConverterClass = forName("org.bytedeco.javacv.Java2DFrameConverter");
 
                 Object toMatConverter = toMatConverterClass.getConstructor().newInstance();
                 Object java2dConverter = java2dConverterClass.getConstructor().newInstance();
@@ -217,6 +237,7 @@ public class WebcamAction implements Action {
                 releaseCaptureMethod.invoke(captureRef);
 
             } catch (Exception e) {
+                Logger.error("webcam: scan thread failed: " + e.getMessage(), e);
                 SwingUtilities.invokeLater(() -> {
                     JOptionPane.showMessageDialog(scanFrame,
                         i.tr("webcam.init.failed", e.getMessage()),
@@ -263,7 +284,7 @@ public class WebcamAction implements Action {
 
     private int selectDevice(I18N i18n) {
         try {
-            Class<?> grabberClass = Class.forName("org.bytedeco.javacv.FrameGrabber");
+            Class<?> grabberClass = forName("org.bytedeco.javacv.FrameGrabber");
             Method listMethod = grabberClass.getMethod("getDeviceDescriptions");
             String[] devices = (String[]) listMethod.invoke(null);
 
@@ -289,7 +310,9 @@ public class WebcamAction implements Action {
                 }
             }
         } catch (Exception e) {
-            // Ignorieren
+            System.err.println("WEBCAM ERROR selectDevice: " + e.getClass().getName() + ": " + e.getMessage());
+            e.printStackTrace();
+            Logger.error("webcam: selectDevice failed: " + e.getMessage(), e);
         }
 
         String input = (String) JOptionPane.showInputDialog(null,

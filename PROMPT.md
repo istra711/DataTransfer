@@ -6,46 +6,51 @@ Kombiniertes Jameica/Hibiscus-Plugin zum Lesen von SEPA-Zahlungsdaten aus QR-Cod
 
 - Plugin-Name: `hbci.datatransfer`
 - Package: `de.willuhn.jameica.hbci.datatransfer`
-- Repository: https://github.com/istra711/DataTransfer (privat)
-- Jameica-Version: 2.12.0+
-- Hibiscus-Version: 2.12.0+
+- Repository: https://github.com/istra711/DataTransfer (öffentlich)
+- Jameica-Version: 2.10.0+
+- Hibiscus-Version: 2.10.0+
 - Java: 8+ (source/target)
+- Aktuelle Version: v2.4.0
 
 ## Verzeichnisstruktur
 
 ```
 DataTransfer/
 ├── plugin.xml                    # Jameica Plugin-Manifest
+├── PROMPT.md                     # Dieses File
 ├── src/
 │   ├── de/willuhn/jameica/hbci/datatransfer/
-│   │   ├── DataTransferPlugin.java      # Plugin-Einstiegspunkt
-│   │   ├── DataTransferIO.java          # IO-Registry (Importer)
-│   │   ├── OcrSettings.java             # OCR-Einstellungen
+│   │   ├── DataTransferPlugin.java
+│   │   ├── DataTransferIO.java
+│   │   ├── DataTransferBaseImporter.java
+│   │   ├── DataTransferFileImporter.java
+│   │   ├── OcrSettings.java
 │   │   ├── action/
-│   │   │   ├── FileAction.java          # Datei-Eingabe
-│   │   │   ├── ClipboardAction.java     # Zwischenablage
-│   │   │   ├── WebcamAction.java        # Webcam
-│   │   │   └── SettingsAction.java      # Einstellungen
+│   │   │   ├── FileAction.java
+│   │   │   ├── ClipboardAction.java
+│   │   │   ├── WebcamAction.java
+│   │   │   └── SettingsAction.java
 │   │   ├── gui/
-│   │   │   ├── InvoiceView.java         # OCR-Ansicht
-│   │   │   ├── QRCodeView.java          # QR-Code-Ansicht
-│   │   │   ├── InvoiceDebugView.java    # Debug-Ansicht
-│   │   │   └── SettingsView.java        # Einstellungen
+│   │   │   ├── InvoiceView.java
+│   │   │   ├── QRCodeView.java
+│   │   │   ├── InvoiceDebugView.java
+│   │   │   └── SettingsView.java
 │   │   ├── model/
-│   │   │   └── TransferData.java        # Einheitliches Datenmodell
+│   │   │   ├── TransferData.java
+│   │   │   └── TransferDataHolder.java
 │   │   └── parser/
-│   │       ├── SmartDetector.java       # Auto-Erkennung
-│   │       ├── OcrEngine.java           # Tesseract-Wrapper
-│   │       ├── InvoiceTextParser.java   # Regex-Parser
-│   │       ├── EpcParser.java           # EPC (BCD) Parser
-│   │       ├── EmvParser.java           # EMV (TLV) Parser
-│   │       └── QrCodeSelector.java      # Multi-QR Auswahl
-│   └── lang/
-│       ├── hbci_datatransfer_messages_de_DE.properties
-│       └── hbci_datatransfer_messages_en.properties
-├── bilder/                       # Icons (Quelle)
+│   │       ├── SmartDetector.java
+│   │       ├── OcrEngine.java
+│   │       ├── InvoiceTextParser.java
+│   │       ├── EpcParser.java
+│   │       ├── EmvParser.java
+│   │       └── QrCodeSelector.java
+├── lang/
+│   ├── hbci_datatransfer_messages_de_DE.properties
+│   └── hbci_datatransfer_messages_en.properties
+├── img/                          # Icons + Screenshots
 ├── lib/                          # Abhängigkeiten (JARs)
-└── dist/                         # Build-Ausgabe
+└── build.xml                     # Ant build file
 ```
 
 ## Wichtige Jameica-Regeln
@@ -55,32 +60,86 @@ DataTransfer/
 Die ZIP-Datei muss einer strengen Struktur folgen:
 
 ```
-pluginname/                    ← Genau EIN Ordner auf oberster Ebene
+hbci.datatransfer/              ← Genau EIN Ordner auf oberster Ebene
 ├── plugin.xml                 ← Muss im Hauptordner liegen
-├── datatransfer.jar           ← Fat-JAR (8MB, nicht Thin-JAR 75KB!)
+├── hbci.datatransfer.jar      ← Thin-JAR (nur eigene Klassen, ~400KB!)
 ├── img/                       ← Explizite Verzeichnis-Einträge nötig!
 │   └── icon.png
 ├── lang/
 │   └── messages.properties
-└── lib/
-    └── dependency.jar
+└── lib/                       ← Abhängigkeiten als eigene JARs
+    ├── tess4j-5.19.0.jar
+    ├── pdfbox-3.0.7.jar
+    └── ...
 ```
+
+**CRITICAL: Die JAR darf KEINE verschachtelte JAR (nested JAR) enthalten!**
+- Die `lib/`-JARs werden von Jameica's Plugin-ClassLoader automatisch geladen
+- Eine innere `datatransfer.jar` innerhalb der Haupt-JAR führt zu Classloader-Konflikten
+- Jameica lädt dann die Klassen aus der inneren JAR statt aus der äußeren → alte/broken Version
 
 **Fehler die vermieden werden müssen:**
-1. ❌ Dateien direkt auf oberster Ebene → `contains invalid file`
-2. ❌ Windows-Backslashes `\` im ZIP → Jameica prüft auf `/`
-3. ❌ Fehlende explizite Verzeichnis-Einträge → `plugin zip-file empty`
-4. ❌ Thin-JAR (nur Klassen) → Muss Fat-JAR sein
+1. ❌ Verschachtelte JARs innerhalb der Haupt-JAR → Classloader-Konflikte
+2. ❌ Dateien direkt auf oberster Ebene → `contains invalid file`
+3. ❌ Windows-Backslashes `\` im ZIP → Jameica prüft auf `/`
+4. ❌ Fehlende explizite Verzeichnis-Einträge → `plugin zip-file empty`
 5. ❌ PowerShell `Compress-Archive` → Erstellt keine Verzeichnis-Einträge, nutzt `\`
 
-**Richtige ZIP-Erstellung mit Ant (empfohlen):**
-```bash
-ant -f build.xml clean zip
+### 0.1 JAR-Struktur (NEU seit v2.4.0)
+
+**RICHTIG (Thin-JAR + lib/):**
 ```
-Ant's `zip`-Task erstellt automatisch:
-- Explizite Verzeichnis-Einträge
-- Forward-Slashes (auch auf Windows)
-- Korrekte Plugin-Struktur
+hbci.datatransfer.jar          ← Nur eigene kompilierte Klassen + plugin.xml + lang/ + img/
+lib/                           ← Alle Dependencies als separate JARs
+```
+
+**FALSCH (Fat-JAR mit verschachtelten JARs):**
+```
+hbci.datatransfer.jar          ← Enthält Klassen + UND innere datatransfer.jar
+                                 → Jameica findet die innere JAR → lädt alte Klassen!
+```
+
+**Build-Prozess für saubere JAR:**
+```powershell
+# 1. Kompilieren
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-17.0.0.1"
+& "C:\Users\istra\apache-ant-1.10.17\bin\ant.bat" compile
+
+# 2. Saubere JAR erstellen (nur eigene Klassen + Resourcen)
+$classesDir = "C:\Users\istra\Documents\claude_ps\DataTransfer\build\classes"
+$mergedDir = "$env:TEMP\release_jar"
+New-Item -ItemType Directory -Path $mergedDir -Force
+Copy-Item "$classesDir\*" $mergedDir -Recurse -Force
+Copy-Item "lang" "$mergedDir\lang" -Recurse -Force
+Copy-Item "img" "$mergedDir\img" -Recurse -Force
+Copy-Item "plugin.xml" "$mergedDir\plugin.xml" -Force
+
+# 3. JAR erstellen (MIT plugin.xml IN der JAR!)
+Push-Location $mergedDir
+& "C:\Program Files\Java\jdk-17.0.0.1\bin\jar.exe" cf hbci.datatransfer.jar *
+Pop-Location
+```
+
+### 0.2 Classfinder in plugin.xml (KRITISCH!)
+
+Die `<classfinder>` Regex MUSS den tatsächlichen JAR-Namen matchen:
+
+```xml
+<classfinder>
+  <!-- RICHTIG: Matcht den tatsächlichen JAR-Namen -->
+  <include>hbci\.datatransfer\.jar</include>
+  <include>.*\.class</include>
+</classfinder>
+```
+
+```xml
+<classfinder>
+  <!-- FALSCH: Matcht eine innere JAR die es nicht mehr gibt -->
+  <include>datatransfer\.jar</include>
+</classfinder>
+```
+
+**Regel:** Der Name in `<include>` muss EXAKT zum Dateinamen der plugin-JAR passen.
 
 ### 1. Icon-Pfade in plugin.xml
 ```xml
@@ -90,21 +149,15 @@ icon-close="img/datatransfer-icon.png"
 <!-- RICHTIG: Nur Dateiname, Jameica sucht in Unterverzeichnissen -->
 icon-close="datatransfer-icon.png"
 ```
-- Jameica sucht Icons im Plugin-Root UND in Unterverzeichnissen (wie `img/`)
-- Der `img/` Prefix in Referenzen darf NICHT verwendet werden
-- Icons können in `img/` Unterverzeichnis bleiben
 
 ### 2. Sprachdateien
-- Benennung: `hbci_datatransfer_messages_de_DE.properties` (nicht `messages_de_DE`)
+- Benennung: `hbci_datatransfer_messages_de_DE.properties`
 - Immer mit Plugin-Name als Prefix
-- Nur Latein-Zeichen, keine Umlaute direkten in Properties (Escape: `\u00FC` für ü)
+- Umlaute als Escape-Sequenzen: `\u00FC` für ü, `\u00F6` für ö, `\u00E4` für ä
 
 ### 3. Plugin.xml Struktur
 ```xml
-<?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://www.willuhn.de/schema/jameica-plugin"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.willuhn.de/schema/jameica-plugin http://www.willuhn.de/schema/jameica-plugin-1.5.xsd"
         name="hbci.datatransfer" version="X.Y.Z"
         class="de.willuhn.jameica.hbci.datatransfer.DataTransferPlugin">
   
@@ -113,16 +166,9 @@ icon-close="datatransfer-icon.png"
   </requires>
   
   <classfinder>
-    <include>datatransfer\.jar</include>
+    <include>hbci\.datatransfer\.jar</include>
+    <include>.*\.class</include>
   </classfinder>
-  
-  <navigation>
-    <item id="datatransfer.navi" name="Daten-Transfer" icon-close="datatransfer-icon.png" icon-open="datatransfer-icon.png">
-      <item id="datatransfer.navi.file" name="Datei (PDF/Bild)" icon-close="file-icon.png" icon-open="file-icon.png"
-            action="de.willuhn.jameica.hbci.datatransfer.action.FileAction" />
-      ...
-    </item>
-  </navigation>
   
   <extension point="jameica.extension">
     <class>de.willuhn.jameica.hbci.datatransfer.DataTransferIO</class>
@@ -130,104 +176,182 @@ icon-close="datatransfer-icon.png"
 </plugin>
 ```
 
-**Wichtig:** `<depends>` NICHT verwenden → `<requires><import>` verwenden!
+**Wichtig:** `<requires><import>` verwenden, NICHT `<depends>`!
 
 ### 4. Kompilierung
 - JDK 17 verwenden (`C:\Program Files\Java\jdk-17.0.0.1`)
-- Classpath: `hibiscus.jar`, `jameica.jar`, `de_willuhn_ds.jar`, `de_willuhn_util.jar`, `swt.jar`, `lib\*`
-- Compile-Befehl:
-```powershell
-& "C:\Program Files\Java\jdk-17.0.0.1\bin\javac.exe" -source 1.8 -target 1.8 `
-  -cp "hibiscus.jar;jameica.jar;de_willuhn_ds.jar;de_willuhn_util.jar;swt.jar;lib\*" `
-  -d build\classes -encoding UTF-8 `
-  (Get-ChildItem src -Filter "*.java" -Recurse | Select-Object -ExpandProperty FullName)
-```
+- Ant: `C:\Users\istra\apache-ant-1.10.17\bin\ant.bat`
+- JAVA_HOME muss gesetzt werden: `$env:JAVA_HOME = "C:\Program Files\Java\jdk-17.0.0.1"`
+- Classpath: `jameica.jar`, `hibiscus.jar`, `lib\*` (aus dem Produktions-Verzeichnis)
 
-### 5. Jameica Portable - Workdir
-- Config-Datei: `C:\Users\istra\.jameica.properties`
-- Workdir wird dort definiert: `dir=C\:\\Users\\istra\\.jameica`
-- Log-Datei: Im workdir unter `Data\jameica\jameica.log`
+### 5. Jameica Portable
+- Produktion: `G:\jameica_portable_V1\`
+- Test: `G:\jameica_portable_test\`
+- Config: `C:\Users\istra\.jameica.properties` (shared!)
+- Log: `<jameica>\Data\jameica\jameica.log`
 - **ACHTUNG:** Test-Version teilt sich Config mit Produktion!
 
-## Bekannte Probleme und Lösungen
+## Webcam-Integration (JavaCV via Reflection)
 
-### Problem: Importer wird nicht erkannt
-**Ursache:** Jameica 2.12.0 verwendet ClassFinder nur innerhalb des Hibiscus-Plugins.
-**Lösung:** Hibiscus-Commit `cbbce4a` nötig (globaler ClassFinder).
-**Workaround:** Menu-Lösung unter `Zahlungsverkehr > Daten-Transfer` verwenden.
+### Architektur
+Die Webcam nutzt JavaCV/OpenCV **über Reflection**, um keine direkte Compile-Abhängigkeit zu haben:
 
-### Problem: NoClassDefFoundError bei DataTransferIO
-**Ursache:** DataTransfer wird VOR Hibiscus geladen.
-**Lösung:** `<depends>hibiscus</depends>` in plugin.xml hinzufügen.
+```java
+// Globaler ClassLoader ist ESSENTIELL für Webcam!
+private static ClassLoader getGlobalClassLoader() {
+    return Application.getClassLoader();
+}
 
-### Problem: Icons nicht sichtbar
-**Ursache:** `img/` Prefix in plugin.xml Referenzen.
-**Lösung:** Nur Dateinamen verwenden, Jameica sucht automatisch in Unterverzeichnissen.
+private static Class<?> forName(String name) throws ClassNotFoundException {
+    return Class.forName(name, true, getGlobalClassLoader());
+}
 
-### Problem: Umlaute in Dialogen kaputt
-**Ursache:** Direkte Umlaute in Properties-Dateien.
-**Lösung:** Escape-Sequenzen verwenden oder Properties als UTF-8 speichern.
+// Verwendung:
+Class<?> captureClass = forName("org.bytedeco.opencv.opencv_videoio.VideoCapture");
+Object capture = captureClass.getConstructor().newInstance();
+```
 
-## Test-Verzeichnis
+### KRITISCH: Globaler ClassLoader
+- Jameica's Plugin-ClassLoader kann Webcam-JARs NICHT finden
+- **Muss** `Application.getClassLoader()` verwenden
+- Ohne das: `ClassNotFoundException: org.bytedeco.javacpp.indexer.Indexable`
 
-- Pfad: `G:\jameica_portable_test\`
-- Plugins: `G:\jameica_portable_test\jameica\plugins\`
-- Log: `G:\jameica_portable_test\Data\jameica\jameica.log`
-- Config: `C:\Users\istra\.jameica.properties` (shared mit Produktion!)
+### Webcam-Open mit Timeout
+```java
+// VideoCapture.open() kann blockieren!
+FutureTask<Boolean> openTask = new FutureTask<>(() -> {
+    cap.getClass().getMethod("open", int.class).invoke(cap, devIdx);
+    return (Boolean) cap.getClass().getMethod("isOpened").invoke(cap);
+});
+Thread openThread = new Thread(openTask);
+openThread.setDaemon(true);
+openThread.start();
 
-## Funktionierende Vorlage
+Boolean isOpened = openTask.get(20, TimeUnit.SECONDS);  // 20s Timeout!
+```
 
-Es gibt eine funktionierende Plugin-ZIP im Repo:
-- `hbci.datatransfer.zip` (im Projekt-Root)
-- Enthält die alte Version (v2.0.0) mit `datatransfer.jar` (Fat-JAR, 8MB)
-- Kann als Vorlage dienen: ZIP entpacken, `plugin.xml` ersetzen, neu ZIPpen
+### Error-Logging in WebcamAction
+```java
+// ALLE Fehlerpfade müssen loggen:
+System.err.println("WEBCAM ERROR: " + message);  // Für Konsole
+Logger.error("webcam: " + message, exception);    // Für Jameica-Log
 
-**Achtung:** Die JAR in dieser ZIP heißt `datatransfer.jar` (nicht `hbci.datatransfer.jar`)
+// Ohne System.err.println erscheinen Fehler NICHT im Log!
+```
+
+### Webcam-JARs (in lib/)
+Die Webcam benötigt spezifische JavaCV-JARs:
+- javacpp-1.5.9.jar + javacpp-1.5.9-windows-x86_64.jar
+- javacv-1.5.9.jar
+- opencv-4.7.0-1.5.9.jar + opencv-4.7.0-1.5.9-windows-x86_64.jar
+- openblas-0.3.23-1.5.9.jar + openblas-0.3.23-1.5.9-windows-x86_64.jar
+- fftw-3.3.10-1.5.9.jar + fftw-3.3.10-1.5.9-windows-x86_64.jar
+
+## Hibiscus Import-Dialog Integration
+
+### Wie es funktioniert
+1. Plugin registriert Importer via `<extension point="jameica.extension">`
+2. ClassFinder in IORegistry findet Importer automatisch
+3. Hibiscus Import-Dialog zeigt "Rechnungs-Datei(PDF/Image) - OCR/QR" an
+
+### Benötigt: Gepatchter Hibiscus
+- Commit `cbbce4ad` ändert `IORegistry.java`
+- Nutzt `Application.getClassLoader().getClassFinder()` statt plugin-spezifischen ClassLoader
+- Ohne Patch: Importer erscheint NICHT im Import-Dialog
+- Menü-Funktionen funktionieren immer (auch ohne Patch)
+
+### Importer-Architektur
+```
+DataTransferIO (implements IO)
+  └── getIOFormats() → liefert IOFormat-Objekte
+       └── DataTransferFileImporter (extends AbstractImporter)
+            └── processInput(InputStream) → returns TransferData
+                 └── doImport() → öffnet Review-Dialog (QRCodeView/InvoiceView)
+```
+
+### Achtung: Keine Clipboard/Webcam im Import-Dialog
+- Import-Dialog nutzt IMMER File-Dialog (FileDialog)
+- Clipboard und Webcam funktionieren NUR über Plugin-Menü
+- Das ist ein Jameica-Design, nicht ein Bug
+
+## Fehler-Vermeidungs-Checkliste
+
+### Vor jedem Deploy prüfen:
+1. ✅ Keine verschachtelte JAR in der Haupt-JAR
+2. ✅ `<classfinder>` matcht den tatsächlichen JAR-Namen
+3. ✅ `plugin.xml` ist IN der JAR UND im Plugin-Verzeichnis
+4. ✅ `lang/` und `img/` sind im Plugin-Verzeichnis (nicht nur in der JAR)
+5. ✅ `lib/` enthält alle Dependencies
+6. ✅ WebcamAction nutzt `Application.getClassLoader()` für alle `Class.forName()`
+7. ✅ Alle Fehlerpfade haben `System.err.println` + `Logger.error`
+
+### Wenn Importer nicht erscheint:
+1. Ist `plugin.xml` mit `<extension point="jameica.extension">` vorhanden?
+2. Stimmt der `<classfinder>` Regex?
+3. Ist der gepatchte Hibiscus installiert?
+4. Ist die JAR-Korrupt? (Frisch bauen!)
+
+### Wenn Webcam nicht funktioniert:
+1. Sind ALLE 9 Webcam-JARs in `lib/`?
+2. Nutzt WebcamAction `Application.getClassLoader()`?
+3. Ist der Timeout auf 20s gesetzt?
+4. Steht in `System.err.println` im catch-Block?
 
 ## Build-Prozess
 
-### Schnell-Build (empfohlen für kleine Änderungen)
-
-Von der funktionierenden Installation im Produktions-Verzeichnis kopieren:
+### Sauberer Build (EMPFOHLEN)
 ```powershell
-# 1. Funktionierende Installation als Vorlage
-$src = "G:\jameica_portable_V1\jameica\plugins\hbci.datatransfer"
-$dst = "C:\Users\istra\Documents\claude_ps\DataTransfer\release"
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-17.0.0.1"
+Set-Location "C:\Users\istra\Documents\claude_ps\DataTransfer"
 
-# 2. Kopieren
-Copy-Item $src $dst -Recurse
+# 1. Kompilieren
+& "C:\Users\istra\apache-ant-1.10.17\bin\ant.bat" compile
 
-# 3. Nur plugin.xml ersetzen (falls geändert)
-Copy-Item "C:\Users\istra\Documents\claude_ps\DataTransfer\plugin.xml" "$dst\plugin.xml"
+# 2. Saubere JAR erstellen
+$classesDir = "build\classes"
+$srcDir = "C:\Users\istra\Documents\claude_ps\DataTransfer"
+$releaseJar = "$env:TEMP\hbci.datatransfer.jar"
+$tmpDir = "$env:TEMP\release_jar"
 
-# 4. ZIP mit Ant erstellen (NICHT Compress-Archive!)
-# Oder: Die funktionierende ZIP aus dem Repo nehmen und plugin.xml ersetzen
+Remove-Item -Recurse -Force $tmpDir -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
+
+Copy-Item "$srcDir\$classesDir\*" $tmpDir -Recurse -Force
+Copy-Item "$srcDir\lang" "$tmpDir\lang" -Recurse -Force
+Copy-Item "$srcDir\img" "$tmpDir\img" -Recurse -Force
+Copy-Item "$srcDir\plugin.xml" "$tmpDir\plugin.xml" -Force
+
+Push-Location $tmpDir
+& "C:\Program Files\Java\jdk-17.0.0.1\bin\jar.exe" cf $releaseJar *
+Pop-Location
+
+# 3. Plugin-ZIP erstellen
+$zipDir = "$env:TEMP\release_zip\hbci.datatransfer"
+Remove-Item -Recurse -Force "$env:TEMP\release_zip" -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Path $zipDir -Force | Out-Null
+
+Copy-Item $releaseJar "$zipDir\hbci.datatransfer.jar"
+Copy-Item "$srcDir\plugin.xml" "$zipDir\plugin.xml"
+Copy-Item "$srcDir\lib" "$zipDir\lib" -Recurse
+Copy-Item "$srcDir\lang" "$zipDir\lang" -Recurse
+Copy-Item "$srcDir\img" "$zipDir\img" -Recurse
+
+# ZIP mit 7-Zip (NICHT Compress-Archive!)
+& "C:\Program Files\7-Zip\7z.exe" a -tzip "$srcDir\release\hbci.datatransfer-2.4.0.zip" "$zipDir\*"
 ```
 
-### Voll-Build mit Ant
-
-```bash
-# Ant muss konfiguriert sein (jameica.home in build.xml prüfen!)
-ant -f build.xml clean zip
+### Quick-Deploy (nur plugin.xml geändert)
+```powershell
+# Wenn NUR plugin.xml geändert wurde:
+$pluginDir = "G:\jameica_portable_test\jameica\plugins\hbci.datatransfer"
+Copy-Item "C:\Users\istra\Documents\claude_ps\DataTransfer\plugin.xml" "$pluginDir\plugin.xml"
+# Jameica neu starten
 ```
-
-**Voraussetzung:** `build.xml` muss `jameica.home` auf das richtige Jameica-Verzeichnis zeigen.
-
-### Was Ant erstellt:
-- `dist/datatransfer.jar` - Fat-JAR mit allen Klassen
-- `dist/hbci.datatransfer-X.Y.Z.zip` - Installations-ZIP mit korrekter Struktur
 
 ### ⚠️ NICHT verwenden:
-- PowerShell `Compress-Archive` → Erstellt keine Verzeichnis-Einträge, nutzt `\`
-- Manuelle ZIP-Erstellung ohne explizite Verzeichnis-Einträge
-
-## Abhängigkeiten (lib/)
-
-- tess4j 5.19.0 - Tesseract OCR
-- pdfbox 3.0.7 - PDF-Textextraktion
-- zxing (core/javase) 3.5.3 - QR-Code
-- jna 5.18.1 - Native Access
-- slf4j 2.0.18 - Logging
+- PowerShell `Compress-Archive` → Keine Verzeichnis-Einträge, nutzt `\`
+- `jar uf` auf Windows → Korrupt die JAR
+- Fat-JAR mit entpackten lib/-JARs → 90MB statt 400KB + lib/
 
 ## Git-Workflow
 
@@ -263,8 +387,7 @@ gh repo edit istra711/DataTransfer --visibility public --accept-visibility-chang
 
 ### Ueberweisung erstellen
 ```java
-de.willuhn.jameica.hbci.rmi.HBCIDBService dbService = 
-    de.willuhn.jameica.hbci.Settings.getDBService();
+HBCIDBService dbService = Settings.getDBService();
 Ueberweisung u = dbService.createObject(Ueberweisung.class, null);
 u.setGegenkontoNummer(iban);
 u.setGegenkontoBLZ(bic);
@@ -274,40 +397,29 @@ u.setZweck(zweck);
 u.store();
 ```
 
-## Aktueller Stand
+## Test-Verzeichnis
 
-### Funktioniert
-- QR-Code-Erkennung (EPC/EMV)
-- OCR mit Tesseract
-- Multi-QR in PDFs
-- Case-insensitive Schlüsselwortsuche
-- Hilfe-Button in Einstellungen
-- Doppelklick-Editor für Schlüsselwörter
-- Importer-Integration (IORegistry) - funktioniert mit gepatchtem Hibiscus
-- Hibiscus Import-Dialog Integration (v2.3.0)
+- Pfad: `G:\jameica_portable_test\`
+- Plugins: `G:\jameica_portable_test\jameica\plugins\`
+- Log: `G:\jameica_portable_test\Data\jameica\jameica.log`
+- Jameica EXE: `G:\jameica_portable_test\jameica\jameica-win64.exe`
 
-### Nicht implementiert
-- Webcam-Funktion (nur QR, kein OCR)
+## Versionshistorie
 
-## Bekannte Probleme und Lösungen
+### v2.4.0
+- Sauberes Build: Keine verschachtelte `datatransfer.jar` in der Haupt-JAR mehr
+- Classfinder-Regex in plugin.xml korrigiert (matcht `hbci.datatransfer.jar`)
+- Webcam: Timeout auf 20s erhöht, globaler ClassLoader, besseres Error-Logging
 
-### Problem: Plugin-ZIP wird nicht erkannt
-**Ursache:** Falsche ZIP-Struktur (Dateien auf oberster Ebene, fehlende Verzeichnis-Einträge, Thin-JAR).
-**Lösung:** Siehe "0. Plugin-ZIP Struktur" oben. Fat-JAR verwenden, explizite Verzeichnis-Einträge, Forward-Slashes.
+### v2.3.0
+- Hibiscus Import-Dialog Integration
+- Review-Dialog vor Überweisungsanlegung
+- SmartDetector: detectFromStream() mit beliebigen Dateitypen
+- TransferDataHolder für View-Übergabe
 
-### Problem: Importer wird nicht erkannt
-**Ursache:** Jameica 2.12.0 verwendet ClassFinder nur innerhalb des Hibiscus-Plugins.
-**Lösung:** Hibiscus-Commit `cbbce4a` nötig (globaler ClassFinder).
-**Workaround:** Menu-Lösung unter `Zahlungsverkehr > Daten-Transfer` verwenden.
+### v2.1.0
+- Hilfe-Button, Doppelklick-Editor, case-insensitive Suche
+- Multi-QR-Erkennung in PDFs
 
-### Problem: NoClassDefFoundError bei DataTransferIO
-**Ursache:** DataTransfer wird VOR Hibiscus geladen.
-**Lösung:** `<requires><import plugin="hibiscus"/></requires>` in plugin.xml.
-
-### Problem: Icons nicht sichtbar
-**Ursache:** `img/` Prefix in plugin.xml Referenzen.
-**Lösung:** Nur Dateinamen verwenden, Jameica sucht automatisch in Unterverzeichnissen.
-
-### Problem: Umlaute in Dialogen kaputt
-**Ursache:** Direkte Umlaute in Properties-Dateien.
-**Lösung:** Escape-Sequenzen verwenden oder Properties als UTF-8 speichern.
+### v2.0.0
+- Fusion von QRtransfer und OCRtransfer
