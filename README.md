@@ -97,7 +97,10 @@ The required changes have been proposed by the Hibiscus developer (see [Hibiscus
 
 ## Installation
 
-1. Download the latest version from the [Releases](https://github.com/istra711/DataTransfer/releases) page
+1. Download the correct version for your platform from the [Releases](https://github.com/istra711/DataTransfer/releases) page:
+   - **Windows**: `hbci.datatransfer-2.4.0.zip`
+   - **Linux**: `hbci.datatransfer-2.4.0-linux.zip`
+   - **macOS**: `hbci.datatransfer-2.4.0-macos.zip`
 2. Start Jameica
 3. Navigate to **File > Search for plugins online... > Install plugin manually...**
 4. Select the downloaded ZIP file
