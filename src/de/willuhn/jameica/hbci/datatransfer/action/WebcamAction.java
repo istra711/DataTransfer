@@ -285,8 +285,9 @@ public class WebcamAction implements Action {
     private int selectDevice(I18N i18n) {
         try {
             Class<?> grabberClass = forName("org.bytedeco.javacv.FrameGrabber");
-            Method listMethod = grabberClass.getMethod("getDeviceDescriptions");
-            String[] devices = (String[]) listMethod.invoke(null);
+            java.lang.reflect.Field listField = grabberClass.getField("list");
+            java.util.List<?> deviceList = (java.util.List<?>) listField.get(null);
+            String[] devices = deviceList.toArray(new String[0]);
 
             if (devices != null && devices.length > 0) {
                 if (devices.length == 1) {
