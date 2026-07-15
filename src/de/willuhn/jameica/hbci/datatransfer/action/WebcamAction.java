@@ -79,10 +79,47 @@ public class WebcamAction implements Action {
 
         Object capture;
         try {
+            Logger.info("webcam: === DIAGNOSTIC START ===");
+            Logger.info("webcam: os.name = " + System.getProperty("os.name"));
+            Logger.info("webcam: os.arch = " + System.getProperty("os.arch"));
+            Logger.info("webcam: os.version = " + System.getProperty("os.version"));
+            Logger.info("webcam: java.version = " + System.getProperty("java.version"));
+            Logger.info("webcam: java.library.path = " + System.getProperty("java.library.path"));
+
+            // Set JavaCPP platform property to help with native library extraction
+            String osArch = System.getProperty("os.arch", "").toLowerCase();
+            if (osArch.contains("aarch64") || osArch.contains("arm64")) {
+                String existingPlatform = System.getProperty("org.bytedeco.javacpp.platform");
+                if (existingPlatform == null || existingPlatform.isEmpty()) {
+                    System.setProperty("org.bytedeco.javacpp.platform", "macosx-arm64");
+                    Logger.info("webcam: set org.bytedeco.javacpp.platform = macosx-arm64");
+                }
+            }
+
+            // Pre-check: try to load JavaCPP native library first (lightweight check)
+            Logger.info("webcam: pre-check: loading javacpp native lib...");
+            try {
+                Class<?> javacppLoader = Class.forName("org.bytedeco.javacpp.Loader");
+                Logger.info("webcam: pre-check: javacpp Loader class found: " + javacppLoader.getName());
+            } catch (Throwable t) {
+                Logger.error("webcam: pre-check: javacpp Loader not found: " + t.getMessage(), t);
+            }
+
             Logger.info("webcam: loading VideoCapture class...");
             Class<?> captureClass;
             try {
                 captureClass = forName("org.bytedeco.opencv.opencv_videoio.VideoCapture");
+                Logger.info("webcam: VideoCapture class loaded OK: " + captureClass.getName());
+            } catch (ExceptionInInitializerError eiie) {
+                Logger.error("webcam: VideoCapture class initialization FAILED (native library crash): " + eiie.getMessage(), eiie);
+                Throwable cause = eiie.getCause();
+                if (cause != null) {
+                    Logger.error("webcam: root cause: " + cause.getClass().getName() + ": " + cause.getMessage(), cause);
+                }
+                JOptionPane.showMessageDialog(null,
+                    i.tr("webcam.cannot.start", "OpenCV native library initialization failed. On macOS, install ffmpeg: brew install ffmpeg"),
+                    i.tr("qrcode.scan.title"), JOptionPane.ERROR_MESSAGE);
+                return;
             } catch (Throwable t) {
                 Logger.error("webcam: Failed to load VideoCapture class: " + t.getMessage(), t);
                 JOptionPane.showMessageDialog(null,
@@ -94,6 +131,7 @@ public class WebcamAction implements Action {
             Logger.info("webcam: creating VideoCapture instance...");
             try {
                 capture = captureClass.getConstructor().newInstance();
+                Logger.info("webcam: VideoCapture instance created OK");
             } catch (Throwable t) {
                 Logger.error("webcam: Failed to create VideoCapture: " + t.getMessage(), t);
                 JOptionPane.showMessageDialog(null,
