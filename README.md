@@ -98,10 +98,10 @@ The required changes have been proposed by the Hibiscus developer (see [Hibiscus
 ## Installation
 
 1. Download the correct version for your platform from the [Releases](https://github.com/istra711/DataTransfer/releases) page:
-   - **Windows**: `hbci.datatransfer-2.4.3-windows.zip`
-   - **Linux**: `hbci.datatransfer-2.4.3-linux.zip`
-   - **macOS Intel**: `hbci.datatransfer-2.4.3-macosx.zip` (x86_64)
-   - **macOS Apple Silicon**: `hbci.datatransfer-2.4.3-macosx-arm64.zip` (M1/M2/M3/M4)
+   - **Windows**: `hbci.datatransfer-2.4.4-windows.zip`
+   - **Linux**: `hbci.datatransfer-2.4.4-linux.zip`
+   - **macOS Intel**: `hbci.datatransfer-2.4.4-macosx.zip` (x86_64)
+   - **macOS Apple Silicon**: `hbci.datatransfer-2.4.4-macosx-arm64.zip` (M1/M2/M3/M4)
 2. Start Jameica
 3. Navigate to **File > Search for plugins online... > Install plugin manually...**
 4. Select the downloaded ZIP file
@@ -201,7 +201,7 @@ The plugin uses an intelligent detection algorithm:
 
 ## Version History
 
-### v2.4.3
+### v2.4.4
 
 - **Fixed macOS ARM webcam crash**: Added missing `opencv-4.7.0-1.5.9.jar` (platform-independent) to macOS ARM ZIP, which was causing `ClassNotFoundException: org.bytedeco.opencv.opencv_videoio.VideoCapture` on Apple Silicon Macs
 
