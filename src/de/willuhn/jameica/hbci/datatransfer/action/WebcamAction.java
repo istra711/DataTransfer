@@ -55,7 +55,20 @@ public class WebcamAction implements Action {
 
     @Override
     public void handleAction(Object context) throws ApplicationException {
-        final I18N i = getI18n();
+        Thread webcamThread = new Thread(() -> runWebcam(), "WebcamAction");
+        webcamThread.setDaemon(true);
+        webcamThread.start();
+    }
+
+    private void runWebcam() {
+        final I18N i;
+        try {
+            i = getI18n();
+        } catch (Exception e) {
+            System.err.println("WEBCAM ERROR: cannot get I18N: " + e.getMessage());
+            return;
+        }
+
         final AtomicBoolean found = new AtomicBoolean(false);
         final String[] qrText = {null};
 
@@ -66,8 +79,28 @@ public class WebcamAction implements Action {
 
         Object capture;
         try {
-            Class<?> captureClass = forName("org.bytedeco.opencv.opencv_videoio.VideoCapture");
-            capture = captureClass.getConstructor().newInstance();
+            Logger.info("webcam: loading VideoCapture class...");
+            Class<?> captureClass;
+            try {
+                captureClass = forName("org.bytedeco.opencv.opencv_videoio.VideoCapture");
+            } catch (Throwable t) {
+                Logger.error("webcam: Failed to load VideoCapture class: " + t.getMessage(), t);
+                JOptionPane.showMessageDialog(null,
+                    i.tr("webcam.cannot.start", "Cannot load OpenCV VideoCapture: " + t.getMessage()),
+                    i.tr("qrcode.scan.title"), JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            Logger.info("webcam: creating VideoCapture instance...");
+            try {
+                capture = captureClass.getConstructor().newInstance();
+            } catch (Throwable t) {
+                Logger.error("webcam: Failed to create VideoCapture: " + t.getMessage(), t);
+                JOptionPane.showMessageDialog(null,
+                    i.tr("webcam.cannot.start", "Cannot create VideoCapture: " + t.getMessage()),
+                    i.tr("qrcode.scan.title"), JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
             final Object cap = capture;
             final int devIdx = deviceIndex;
@@ -283,39 +316,6 @@ public class WebcamAction implements Action {
     }
 
     private int selectDevice(I18N i18n) {
-        try {
-            Class<?> grabberClass = forName("org.bytedeco.javacv.FrameGrabber");
-            java.lang.reflect.Field listField = grabberClass.getField("list");
-            java.util.List<?> deviceList = (java.util.List<?>) listField.get(null);
-            String[] devices = deviceList.toArray(new String[0]);
-
-            if (devices != null && devices.length > 0) {
-                if (devices.length == 1) {
-                    return 0;
-                }
-
-                String selected = (String) JOptionPane.showInputDialog(null,
-                    i18n.tr("webcam.select.device"),
-                    i18n.tr("qrcode.scan.title"),
-                    JOptionPane.QUESTION_MESSAGE,
-                    null, devices, devices[0]);
-
-                if (selected == null) {
-                    return -1;
-                }
-
-                for (int idx = 0; idx < devices.length; idx++) {
-                    if (devices[idx].equals(selected)) {
-                        return idx;
-                    }
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("WEBCAM ERROR selectDevice: " + e.getClass().getName() + ": " + e.getMessage());
-            e.printStackTrace();
-            Logger.error("webcam: selectDevice failed: " + e.getMessage(), e);
-        }
-
         String input = (String) JOptionPane.showInputDialog(null,
             i18n.tr("webcam.enter.device"),
             i18n.tr("qrcode.scan.title"),
