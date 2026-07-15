@@ -10,7 +10,7 @@ Kombiniertes Jameica/Hibiscus-Plugin zum Lesen von SEPA-Zahlungsdaten aus QR-Cod
 - Jameica-Version: 2.10.0+
 - Hibiscus-Version: 2.10.0+
 - Java: 8+ (source/target)
-- Aktuelle Version: v2.4.3
+- Aktuelle Version: v2.4.4
 
 ## Verzeichnisstruktur
 
