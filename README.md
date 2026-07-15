@@ -98,9 +98,10 @@ The required changes have been proposed by the Hibiscus developer (see [Hibiscus
 ## Installation
 
 1. Download the correct version for your platform from the [Releases](https://github.com/istra711/DataTransfer/releases) page:
-   - **Windows**: `hbci.datatransfer-2.4.0.zip`
-   - **Linux**: `hbci.datatransfer-2.4.0-linux.zip`
-   - **macOS**: `hbci.datatransfer-2.4.0-macos.zip`
+   - **Windows**: `hbci.datatransfer-2.4.2-windows.zip`
+   - **Linux**: `hbci.datatransfer-2.4.2-linux.zip`
+   - **macOS Intel**: `hbci.datatransfer-2.4.2-macosx.zip` (x86_64)
+   - **macOS Apple Silicon**: `hbci.datatransfer-2.4.2-macosx-arm64.zip` (M1/M2/M3/M4)
 2. Start Jameica
 3. Navigate to **File > Search for plugins online... > Install plugin manually...**
 4. Select the downloaded ZIP file
@@ -203,7 +204,9 @@ The plugin uses an intelligent detection algorithm:
 ### v2.4.2
 
 - **macOS webcam fix**: Webcam now runs in a separate thread, avoiding the SWT/Swing thread conflict that caused Jameica to crash on macOS when clicking "Webcam (QR)"
+- **macOS ARM support**: Added separate download for Apple Silicon (M1/M2/M3/M4) Macs
 - Simplified device selection dialog (manual index input: 0, 1, 2...)
+- Fixed plugin structure: `plugin.xml`, `lang/`, `img/` now at top level of ZIP (not inside JAR)
 
 ### v2.4.1
 
