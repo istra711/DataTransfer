@@ -198,6 +198,16 @@ Das Plugin verwendet einen intelligenten Erkennungsalgorithmus:
 
 ## Versionshistorie
 
+### v2.4.2
+
+- **macOS Webcam-Fix**: Webcam läuft jetzt in separatem Thread, vermeidet den SWT/Swing-Threading-Konflikt, der auf macOS zum Absturz von Jameica geführt hat
+- Vereinfachter Geraete-Auswahl-Dialog (manuelle Eingabe 0, 1, 2...)
+
+### v2.4.1
+
+- **Classfinder-Regex korrigiert**: `plugin.xml` matched jetzt den tatsächlichen JAR-Namen (`datatransfer.jar`) statt des alten Namens
+- Webcam-Geraeteliste: Nutzt `FrameGrabber.list` zur Geraeteauswahl mit Fallback auf manuelle Eingabe
+
 ### v2.4.0
 
 - **Sauberes Build**: Verschachtelte `datatransfer.jar` innerhalb der Haupt-JAR entfernt — behebt Classloader-Konflikte, bei denen Jameica alte Klassen aus der inneren JAR geladen hat

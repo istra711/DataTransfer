@@ -200,6 +200,16 @@ The plugin uses an intelligent detection algorithm:
 
 ## Version History
 
+### v2.4.2
+
+- **macOS webcam fix**: Webcam now runs in a separate thread, avoiding the SWT/Swing thread conflict that caused Jameica to crash on macOS when clicking "Webcam (QR)"
+- Simplified device selection dialog (manual index input: 0, 1, 2...)
+
+### v2.4.1
+
+- **Fixed classfinder regex**: `plugin.xml` now matches the actual JAR name (`datatransfer.jar`) instead of the old name
+- Webcam device enumeration: Uses `FrameGrabber.list` for device selection with fallback to manual input
+
 ### v2.4.0
 
 - **Clean build**: Removed nested `datatransfer.jar` inside the main JAR — fixes classloader conflicts where Jameica loaded old classes from the inner JAR
