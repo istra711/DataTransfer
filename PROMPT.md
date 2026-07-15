@@ -61,66 +61,90 @@ Die ZIP-Datei muss einer strengen Struktur folgen:
 
 ```
 hbci.datatransfer/              ← Genau EIN Ordner auf oberster Ebene
-├── plugin.xml                 ← Muss im Hauptordner liegen
-├── hbci.datatransfer.jar      ← Thin-JAR (nur eigene Klassen, ~400KB!)
-├── img/                       ← Explizite Verzeichnis-Einträge nötig!
-│   └── icon.png
-├── lang/
-│   └── messages.properties
+├── plugin.xml                 ← Muss im Hauptordner liegen (NICHT in der JAR!)
+├── datatransfer.jar           ← Thin-JAR (nur kompilierte Klassen, ~68KB!)
+├── img/                       ← Muss im Hauptordner liegen (NICHT in der JAR!)
+│   ├── icon.png
+│   └── screenshots/
+├── lang/                      ← Muss im Hauptordner liegen (NICHT in der JAR!)
+│   ├── hbci_datatransfer_messages_de_DE.properties
+│   └── hbci_datatransfer_messages_en.properties
 └── lib/                       ← Abhängigkeiten als eigene JARs
     ├── tess4j-5.19.0.jar
     ├── pdfbox-3.0.7.jar
     └── ...
 ```
 
-**CRITICAL: Die JAR darf KEINE verschachtelte JAR (nested JAR) enthalten!**
+**KRITISCH: plugin.xml, lang/, img/ MÜSSEN auf der obersten Ebene des Plugin-Ordners liegen!**
+- Jameica sucht `plugin.xml` auf dem Dateisystem, nicht in der JAR
+- Jameica's I18N-System lädt `lang/` vom Dateisystem
+- Jameica's Icon-System lädt `img/` vom Dateisystem
+- Wenn diese Dateien NUR in der JAR sind → Jameica findet sie NICHT → Plugin funktioniert nicht!
+
+**Die JAR darf KEINE verschachtelte JAR (nested JAR) enthalten!**
 - Die `lib/`-JARs werden von Jameica's Plugin-ClassLoader automatisch geladen
 - Eine innere `datatransfer.jar` innerhalb der Haupt-JAR führt zu Classloader-Konflikten
-- Jameica lädt dann die Klassen aus der inneren JAR statt aus der äußeren → alte/broken Version
 
 **Fehler die vermieden werden müssen:**
-1. ❌ Verschachtelte JARs innerhalb der Haupt-JAR → Classloader-Konflikte
-2. ❌ Dateien direkt auf oberster Ebene → `contains invalid file`
+1. ❌ plugin.xml/lang/img NUR in der JAR → Jameica findet sie nicht!
+2. ❌ Verschachtelte JARs innerhalb der Haupt-JAR → Classloader-Konflikte
 3. ❌ Windows-Backslashes `\` im ZIP → Jameica prüft auf `/`
-4. ❌ Fehlende explizite Verzeichnis-Einträge → `plugin zip-file empty`
-5. ❌ PowerShell `Compress-Archive` → Erstellt keine Verzeichnis-Einträge, nutzt `\`
+4. ❌ PowerShell `Compress-Archive` → Erstellt keine Verzeichnis-Einträge
+5. ❌ `jar uf` auf Windows → Korrupt die JAR
 
-### 0.1 JAR-Struktur (NEU seit v2.4.0)
+### 0.1 Build-Prozess (KORREKT!)
 
-**RICHTIG (Thin-JAR + lib/):**
-```
-hbci.datatransfer.jar          ← Nur eigene kompilierte Klassen + plugin.xml + lang/ + img/
-lib/                           ← Alle Dependencies als separate JARs
-```
-
-**FALSCH (Fat-JAR mit verschachtelten JARs):**
-```
-hbci.datatransfer.jar          ← Enthält Klassen + UND innere datatransfer.jar
-                                 → Jameica findet die innere JAR → lädt alte Klassen!
-```
-
-**Build-Prozess für saubere JAR:**
 ```powershell
 # 1. Kompilieren
 $env:JAVA_HOME = "C:\Program Files\Java\jdk-17.0.0.1"
 & "C:\Users\istra\apache-ant-1.10.17\bin\ant.bat" compile
 
-# 2. Saubere JAR erstellen (nur eigene Klassen + Resourcen)
-$classesDir = "C:\Users\istra\Documents\claude_ps\DataTransfer\build\classes"
-$mergedDir = "$env:TEMP\release_jar"
-New-Item -ItemType Directory -Path $mergedDir -Force
-Copy-Item "$classesDir\*" $mergedDir -Recurse -Force
-Copy-Item "lang" "$mergedDir\lang" -Recurse -Force
-Copy-Item "img" "$mergedDir\img" -Recurse -Force
-Copy-Item "plugin.xml" "$mergedDir\plugin.xml" -Force
+# 2. Thin-JAR erstellen (NUR kompilierte Klassen!)
+Remove-Item -Recurse -Force build_correct -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Force -Path build_correct | Out-Null
+Copy-Item -Recurse -Force "build\classes\*" build_correct\
+& "C:\Program Files\Java\jdk-17.0.0.1\bin\jar.exe" cf build_correct\datatransfer.jar -C build_correct .
 
-# 3. JAR erstellen (MIT plugin.xml IN der JAR!)
-Push-Location $mergedDir
-& "C:\Program Files\Java\jdk-17.0.0.1\bin\jar.exe" cf hbci.datatransfer.jar *
-Pop-Location
+# 3. Plugin-Ordner mit korrekter Struktur erstellen
+# plugin.xml, lang/, img/ auf oberster Ebene!
+Remove-Item -Recurse -Force win_dir -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Force -Path "win_dir\hbci.datatransfer" | Out-Null
+Copy-Item "build_correct\datatransfer.jar" "win_dir\hbci.datatransfer\"
+Copy-Item "plugin.xml" "win_dir\hbci.datatransfer\"                    # ← TOP LEVEL!
+Copy-Item -Recurse "lang" "win_dir\hbci.datatransfer\lang"             # ← TOP LEVEL!
+Copy-Item -Recurse "img" "win_dir\hbci.datatransfer\img"               # ← TOP LEVEL!
+Copy-Item -Recurse "lib" "win_dir\hbci.datatransfer\lib"
+
+# 4. PRÜFEN bevor ZIP erstellt wird!
+Write-Host "=== VERIFIKATION ==="
+Test-Path "win_dir\hbci.datatransfer\plugin.xml"        # MUSS True sein!
+Test-Path "win_dir\hbci.datatransfer\lang"              # MUSS True sein!
+Test-Path "win_dir\hbci.datatransfer\img"               # MUSS True sein!
+Test-Path "win_dir\hbci.datatransfer\datatransfer.jar"  # MUSS True sein!
+Test-Path "win_dir\hbci.datatransfer\lib"               # MUSS True sein!
+
+# 5. ZIP erstellen (7-Zip, NICHT PowerShell!)
+& "C:\Program Files\7-Zip\7z.exe" a -tzip "release\hbci.datatransfer-VERSION-windows.zip" "win_dir\hbci.datatransfer"
 ```
 
-### 0.2 Classfinder in plugin.xml (KRITISCH!)
+### 0.2 Verifikations-Checklist (VOR jedem Release!)
+
+**VOR dem Upload auf GitHub PRÜFEN:**
+```powershell
+# Struktur prüfen
+Get-ChildItem "win_dir\hbci.datatransfer" -Name
+# Erwartet: img, lang, lib, datatransfer.jar, plugin.xml
+
+# ZIP-Inhalt prüfen
+& "C:\Program Files\7-Zip\7z.exe" l "release\hbci.datatransfer-VERSION-windows.zip" | Select-String "plugin.xml|lang/|img/"
+# Erwartet: Einträge für plugin.xml, lang/, img/ auf oberster Ebene!
+```
+
+**FALLS plugin.xml/lang/img FEHLT:**
+- Die Dateien wurden NUR in die JAR gepackt
+- LOSE die Dateien aus der JAR und kopiere sie auf die oberste Ebene!
+
+### 0.3 Classfinder in plugin.xml
 
 Die `<classfinder>` Regex MUSS den tatsächlichen JAR-Namen matchen:
 
