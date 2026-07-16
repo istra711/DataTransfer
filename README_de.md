@@ -75,6 +75,39 @@ Direkte Erstellung von Überweisungsentwürfen in Hibiscus
 - Java 8+
 - Tesseract OCR (im Plugin enthalten)
 
+### macOS Webcam-Einrichtung
+
+Unter macOS erfordert die Webcam den `NSCameraUsageDescription`-Schlüssel in der `Info.plist` von Jameica. Ohne diesen Eintrag stürzt macOS Jameica sofort ab, wenn auf die Kamera zugegriffen wird (es erscheint kein Berechtigungsdialog).
+
+**Warum das nötig ist:** Seit macOS Big Sur (11.0) hat Apple das TCC-Datenschutzsystem (Transparency, Consent, and Control) verschärft. Apps ohne Kamera-Berechtigungsbeschreibung werden sofort mit `SIGABRT` beendet, anstatt einen Berechtigungsdialog anzuzeigen.
+
+**Schnell-Lösung (Empfohlen):**
+
+Das mitgelieferte Script im Terminal ausführen:
+```bash
+chmod +x fix-webcam-permission.sh
+./fix-webcam-permission.sh
+```
+
+**Manuelle Lösung:**
+
+1. Finder öffnen und zu `/Applications/jameica.app` navigieren
+2. Rechtsklick auf `jameica.app` und "Paketinhalt anzeigen" wählen
+3. `Contents/Info.plist` mit einem Texteditor öffnen
+4. Folgenden Eintrag vor dem schließenden `</dict>`-Tag einfügen:
+   ```xml
+   <key>NSCameraUsageDescription</key>
+   <string>Jameica benötigt Zugriff auf die Webcam, um QR-Codes zu scannen.</string>
+   ```
+5. Datei speichern und Jameica neu starten
+
+**Alternative (Terminal):**
+```bash
+/usr/libexec/PlistBuddy -c "Add :NSCameraUsageDescription string 'Jameica benötigt Zugriff auf die Webcam, um QR-Codes zu scannen.'" /Applications/jameica.app/Contents/Info.plist
+```
+
+Nach dieser Änderung zeigt macOS beim ersten Webcam-Versuch in Jameica einen Berechtigungsdialog an.
+
 ### Hibiscus ClassFinder-Patch
 
 Dieses Plugin erfordert eine gepatchte Version von Hibiscus, die einen globalen ClassFinder für die Plugin-Erkennung verwendet. Das Standard-Hibiscus findet nur Plugins, die vom eigenen ClassLoader geladen werden, was verhindert, dass externe Plugins wie DataTransfer im Import-Dialog erscheinen.
@@ -202,6 +235,7 @@ Das Plugin verwendet einen intelligenten Erkennungsalgorithmus:
 ### v2.4.4
 
 - **Fix für macOS ARM Webcam-Absturz**: Fehlende `opencv-4.7.0-1.5.9.jar` (plattformunabhängig) zur macOS ARM ZIP hinzugefügt, die auf Apple Silicon Macs `ClassNotFoundException: org.bytedeco.opencv.opencv_videoio.VideoCapture` verursacht hat
+- **macOS Webcam-Einrichtung**: Dokumentation hinzugefügt, die die Anforderung des `NSCameraUsageDescription`-Schlüssels in der Info.plist von Jameica unter macOS erklärt
 
 ### v2.4.2
 

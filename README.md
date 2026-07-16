@@ -77,6 +77,39 @@ Direct creation of transfer drafts in Hibiscus
 - Java 8+
 - Tesseract OCR (included in plugin)
 
+### macOS Webcam Setup
+
+On macOS, the webcam requires the `NSCameraUsageDescription` key in Jameica's `Info.plist`. Without this, macOS will crash Jameica immediately when trying to access the camera (no permission dialog appears).
+
+**Why this is needed:** Since macOS Big Sur (11.0), Apple has hardened the TCC (Transparency, Consent, and Control) privacy system. Apps without a camera usage description are killed immediately with `SIGABRT` instead of showing a permission dialog.
+
+**Quick Fix (Recommended):**
+
+Run the provided script in Terminal:
+```bash
+chmod +x fix-webcam-permission.sh
+./fix-webcam-permission.sh
+```
+
+**Manual Fix:**
+
+1. Open Finder and navigate to `/Applications/jameica.app`
+2. Right-click on `jameica.app` and select "Show Package Contents"
+3. Open `Contents/Info.plist` with a text editor
+4. Add the following entry before the closing `</dict>` tag:
+   ```xml
+   <key>NSCameraUsageDescription</key>
+   <string>Jameica needs camera access to scan QR codes.</string>
+   ```
+5. Save the file and restart Jameica
+
+**Alternative (Terminal):**
+```bash
+/usr/libexec/PlistBuddy -c "Add :NSCameraUsageDescription string 'Jameica needs camera access to scan QR codes.'" /Applications/jameica.app/Contents/Info.plist
+```
+
+After this change, macOS will show a permission dialog the first time you use the webcam in Jameica.
+
 ### Hibiscus ClassFinder Patch
 
 This plugin requires a patched version of Hibiscus that uses a global ClassFinder for plugin detection. The standard Hibiscus only finds plugins loaded by its own classloader, which prevents external plugins like DataTransfer from appearing in the Import dialog.
@@ -204,6 +237,7 @@ The plugin uses an intelligent detection algorithm:
 ### v2.4.4
 
 - **Fixed macOS ARM webcam crash**: Added missing `opencv-4.7.0-1.5.9.jar` (platform-independent) to macOS ARM ZIP, which was causing `ClassNotFoundException: org.bytedeco.opencv.opencv_videoio.VideoCapture` on Apple Silicon Macs
+- **macOS webcam setup instructions**: Added documentation explaining the `NSCameraUsageDescription` requirement for Jameica's Info.plist on macOS
 
 ### v2.4.2
 
