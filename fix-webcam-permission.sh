@@ -3,7 +3,7 @@
 # Automatically adds NSCameraUsageDescription to Jameica's Info.plist
 # Required for webcam functionality on macOS Big Sur and later
 
-PLIST="/Applications/jameica.app/Contents/Info.plist"
+PLIST="/Applications/jameica.app/Info.plist"
 DESCRIPTION="Jameica benötigt Zugriff auf die Webcam, um QR-Codes zu scannen."
 
 echo "=== Jameica Webcam Permission Fix ==="
