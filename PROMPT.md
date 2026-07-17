@@ -10,7 +10,7 @@ Kombiniertes Jameica/Hibiscus-Plugin zum Lesen von SEPA-Zahlungsdaten aus QR-Cod
 - Jameica-Version: 2.10.0+
 - Hibiscus-Version: 2.10.0+
 - Java: 8+ (source/target)
-- Aktuelle Version: v2.4.4
+- Aktuelle Version: v2.4.5
 
 ## Verzeichnisstruktur
 
@@ -92,7 +92,26 @@ hbci.datatransfer/              ← Genau EIN Ordner auf oberster Ebene
 4. ❌ PowerShell `Compress-Archive` → Erstellt keine Verzeichnis-Einträge
 5. ❌ `jar uf` auf Windows → Korrupt die JAR
 
-### 0.1 macOS Webcam-Einrichtung (WICHTIG!)
+### 0.2 OCR Tessdata (KRITISCH!)
+
+Das Plugin benötigt Tesseract-Trainingsdateien für OCR. Diese müssen im Plugin-Verzeichnis liegen:
+
+```
+hbci.datatransfer/
+├── tessdata/
+│   └── deu.traineddata    ← Deutsche Trainingsdaten (~8.6MB)
+├── lib/
+│   └── tess4j-5.19.0.jar
+└── ...
+```
+
+**Download der Trainingsdaten:**
+```bash
+mkdir tessdata
+curl -L -o tessdata/deu.traineddata https://github.com/tesseract-ocr/tessdata_best/raw/main/deu.traineddata
+```
+
+**WICHTIG:** Der `tessdata`-Ordner MUSS in der Plugin-ZIP enthalten sein! Ohne Trainingsdateien liefert Tesseract immer `null` zurück.
 
 Unter macOS erfordert die Webcam den `NSCameraUsageDescription`-Schlüssel in der `Info.plist` von Jameica. Ohne diesen Eintrag stürzt macOS Jameica sofort ab, wenn auf die Kamera zugegriffen wird (es erscheint kein Berechtigungsdialog).
 
@@ -463,10 +482,15 @@ u.store();
 
 ## Versionshistorie
 
-### v2.4.0
-- Sauberes Build: Keine verschachtelte `datatransfer.jar` in der Haupt-JAR mehr
-- Classfinder-Regex in plugin.xml korrigiert (matcht `hbci.datatransfer.jar`)
-- Webcam: Timeout auf 20s erhöht, globaler ClassLoader, besseres Error-Logging
+### v2.4.5
+- OCR-Fix: `tessdata/deu.traineddata` wird jetzt im Plugin ausgeliefert
+- OCR: Tessdata-Pfad wird relativ zum Plugin-Verzeichnis aufgelöst (statt relativ zum CWD)
+- Build: `tessdata/` Ordner wird in Plugin-ZIP einbezogen
+
+### v2.4.4
+- macOS Webcam: Diagnose-Logging für ARM-Mac hinzugefügt
+- macOS Webcam: `NSCameraUsageDescription` in Info.plist erforderlich (TCC-Problem behoben)
+- Fix-Script `fix-webcam-permission.sh` für macOS hinzugefügt
 
 ### v2.3.0
 - Hibiscus Import-Dialog Integration

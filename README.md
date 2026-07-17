@@ -75,7 +75,17 @@ Direct creation of transfer drafts in Hibiscus
 - Jameica 2.10.0+
 - Hibiscus 2.10.0+ (**with ClassFinder patch** - see below)
 - Java 8+
-- Tesseract OCR (included in plugin)
+- Tesseract OCR (included in plugin, but requires `tessdata/deu.traineddata` - see below)
+
+### OCR Tessdata
+
+The plugin includes Tesseract OCR, but requires language training data to function. The `tessdata/deu.traineddata` file (German language, ~8.6MB) must be included in the plugin ZIP.
+
+If OCR fails with "Kein Text erkannt" (No text recognized), the tessdata file may be missing. Download it from:
+```bash
+mkdir tessdata
+curl -L -o tessdata/deu.traineddata https://github.com/tesseract-ocr/tessdata_best/raw/main/deu.traineddata
+```
 
 ### macOS Webcam Setup
 
@@ -131,10 +141,10 @@ The required changes have been proposed by the Hibiscus developer (see [Hibiscus
 ## Installation
 
 1. Download the correct version for your platform from the [Releases](https://github.com/istra711/DataTransfer/releases) page:
-   - **Windows**: `hbci.datatransfer-2.4.4-windows.zip`
-   - **Linux**: `hbci.datatransfer-2.4.4-linux.zip`
-   - **macOS Intel**: `hbci.datatransfer-2.4.4-macosx.zip` (x86_64)
-   - **macOS Apple Silicon**: `hbci.datatransfer-2.4.4-macosx-arm64.zip` (M1/M2/M3/M4)
+   - **Windows**: `hbci.datatransfer-2.4.5-windows.zip`
+   - **Linux**: `hbci.datatransfer-2.4.5-linux.zip`
+   - **macOS Intel**: `hbci.datatransfer-2.4.5-macosx.zip` (x86_64)
+   - **macOS Apple Silicon**: `hbci.datatransfer-2.4.5-macosx-arm64.zip` (M1/M2/M3/M4)
 2. Start Jameica
 3. Navigate to **File > Search for plugins online... > Install plugin manually...**
 4. Select the downloaded ZIP file
@@ -233,6 +243,11 @@ The plugin uses an intelligent detection algorithm:
    - QR code only (no OCR)
 
 ## Version History
+
+### v2.4.5
+
+- **Fixed OCR on macOS**: Added `tessdata/deu.traineddata` (German language training data) to plugin ZIP - OCR was failing because Tesseract had no language data
+- **Fixed tessdata path resolution**: Tessdata path is now resolved relative to plugin directory instead of working directory
 
 ### v2.4.4
 

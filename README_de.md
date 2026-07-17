@@ -73,7 +73,17 @@ Direkte Erstellung von Überweisungsentwürfen in Hibiscus
 - Jameica 2.10.0+
 - Hibiscus 2.10.0+ (**mit ClassFinder-Patch** - siehe unten)
 - Java 8+
-- Tesseract OCR (im Plugin enthalten)
+- Tesseract OCR (im Plugin enthalten, erfordert aber `tessdata/deu.traineddata` - siehe unten)
+
+### OCR Tessdata
+
+Das Plugin enthält Tesseract OCR, benötigt aber Sprach-Trainingsdaten für die Funktion. Die Datei `tessdata/deu.traineddata` (deutsche Sprache, ~8.6MB) muss in der Plugin-ZIP enthalten sein.
+
+Wenn OCR mit "Kein Text erkannt" fehlschlägt, fehlt möglicherweise die Tessdata-Datei. Download unter:
+```bash
+mkdir tessdata
+curl -L -o tessdata/deu.traineddata https://github.com/tesseract-ocr/tessdata_best/raw/main/deu.traineddata
+```
 
 ### macOS Webcam-Einrichtung
 
@@ -129,10 +139,10 @@ Die erforderlichen Änderungen wurden vom Hibiscus-Entwickler vorgeschlagen (sie
 ## Installation
 
 1. Die richtige Version für Ihre Plattform von der [Releases](https://github.com/istra711/DataTransfer) Seite herunterladen:
-   - **Windows**: `hbci.datatransfer-2.4.4-windows.zip`
-   - **Linux**: `hbci.datatransfer-2.4.4-linux.zip`
-   - **macOS Intel**: `hbci.datatransfer-2.4.4-macosx.zip` (x86_64)
-   - **macOS Apple Silicon**: `hbci.datatransfer-2.4.4-macosx-arm64.zip` (M1/M2/M3/M4)
+   - **Windows**: `hbci.datatransfer-2.4.5-windows.zip`
+   - **Linux**: `hbci.datatransfer-2.4.5-linux.zip`
+   - **macOS Intel**: `hbci.datatransfer-2.4.5-macosx.zip` (x86_64)
+   - **macOS Apple Silicon**: `hbci.datatransfer-2.4.5-macosx-arm64.zip` (M1/M2/M3/M4)
 2. Jameica starten
 3. Zu **Datei > Plugins online suchen... > Plugin manuell installieren...** navigieren
 4. Die heruntergeladene ZIP-Datei auswählen
@@ -231,6 +241,11 @@ Das Plugin verwendet einen intelligenten Erkennungsalgorithmus:
    - Nur QR-Code (kein OCR)
 
 ## Versionshistorie
+
+### v2.4.5
+
+- **Fix für OCR auf macOS**: `tessdata/deu.traineddata` (deutsche Sprach-Trainingsdaten) wird jetzt in der Plugin-ZIP ausgeliefert - OCR schlug fehl, da Tesseract keine Sprachdaten hatte
+- **Fix für Tessdata-Pfad**: Tessdata-Pfad wird jetzt relativ zum Plugin-Verzeichnis aufgelöst (statt relativ zum CWD)
 
 ### v2.4.4
 

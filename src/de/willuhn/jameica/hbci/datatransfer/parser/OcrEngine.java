@@ -46,8 +46,32 @@ public class OcrEngine {
         if (!available || tessInstance == null) return;
 
         try {
+            // Resolve tessdata path relative to plugin directory if it's relative
+            String resolvedPath = datapath;
+            if (!new File(datapath).isAbsolute()) {
+                try {
+                    // Try to find plugin directory via Jameica's Application class
+                    Class<?> appClass = Class.forName("de.willuhn.jameica.system.Application");
+                    java.lang.reflect.Method getPluginLoader = appClass.getMethod("getPluginLoader");
+                    Object pluginLoader = getPluginLoader.invoke(null);
+                    java.lang.reflect.Method getPlugin = pluginLoader.getClass().getMethod("getPlugin", String.class);
+                    Object plugin = getPlugin.invoke(pluginLoader, "de.willuhn.jameica.hbci.datatransfer.DataTransferPlugin");
+                    java.lang.reflect.Method getManifest = plugin.getClass().getMethod("getManifest");
+                    Object manifest = getManifest.invoke(plugin);
+                    java.lang.reflect.Method getInstallPath = manifest.getClass().getMethod("getInstallPath");
+                    Object installPath = getInstallPath.invoke(manifest);
+                    resolvedPath = installPath + File.separator + datapath;
+                } catch (Exception e) {
+                    logger.warning("Could not resolve tessdata path via plugin: " + e.getMessage());
+                    // Fallback: try relative to jameica.home
+                    String jameicaHome = System.getProperty("jameica.home",
+                        System.getProperty("user.dir", "."));
+                    resolvedPath = jameicaHome + File.separator + datapath;
+                }
+            }
+            
             Method setDatapath = tessInstance.getClass().getMethod("setDatapath", String.class);
-            setDatapath.invoke(tessInstance, datapath);
+            setDatapath.invoke(tessInstance, resolvedPath);
 
             Method setLanguage = tessInstance.getClass().getMethod("setLanguage", String.class);
             setLanguage.invoke(tessInstance, language);
@@ -74,7 +98,7 @@ public class OcrEngine {
             setVariable.invoke(tessInstance, "preserve_interword_spaces",
                 settings.isPreserveInterwordSpaces() ? "1" : "0");
 
-            logger.info("Tesseract initialisiert: datapath=" + datapath + ", language=" + language);
+            logger.info("Tesseract initialisiert: datapath=" + resolvedPath + ", language=" + language);
         } catch (Exception e) {
             logger.warning("Fehler bei Tesseract-Initialisierung: " + e.getMessage());
         }
