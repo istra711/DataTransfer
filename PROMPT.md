@@ -85,12 +85,43 @@ hbci.datatransfer/              ← Genau EIN Ordner auf oberster Ebene
 - Die `lib/`-JARs werden von Jameica's Plugin-ClassLoader automatisch geladen
 - Eine innere `datatransfer.jar` innerhalb der Haupt-JAR führt zu Classloader-Konflikten
 
+**KRITISCHE WARNUNG: ZIP-Build mit manuellen Scripts (PLOPP-WIEDERHOLUNG!)**
+
+Wenn ZIPs manuell mit PowerShell/7-Zip gebaut werden (statt über build.xml), wird
+IMMER ein temporäres Build-Verzeichnis wie `win_dir/`, `linux_dir/`, `macos_dir/` etc.
+erstellt. Beim ZIP-Export muss `Push-Location` in dieses Verzeichnis gewechselt werden,
+damit die ZIP **NICHT** den Build-Ordner-Namen als Präfix enthält!
+
+**FALSCH** (tritt immer wieder auf!):
+```
+7z a release\plugin.zip win_dir\hbci.datatransfer    ← ERGEBNIS: win_dir\hbci.datatansfer\...
+```
+
+**RICHTIG**:
+```
+Push-Location win_dir
+7z a ..\release\plugin.zip hbci.datatransfer           ← ERGEBNIS: hbci.datatransfer\...
+Pop-Location
+```
+
+**VOR DEM UPLOAD AUF GITHUB MUSS DIE STRUKTUR VERIFIZIERT WERDEN:**
+```powershell
+7z l release\plugin-VERSION-windows.zip | Select-String "D\.\.\.\."
+# Erwartet: hbci.datatransfer  (OHNE win_dir/, linux_dir/ etc.)
+```
+
+**FEHLERHAFTE ZIPs FÜREN DAZU, DASS DAS PLUGIN NICHT GELADEN WIRD!**
+Jameica sucht `hbci.datatransfer/plugin.xml` direkt in der ZIP-obersten Ebene.
+Wenn die Struktur `win_dir/hbci.datatransfer/plugin.xml` ist, findet Jameica
+das Plugin NICHT!
+
 **Fehler die vermieden werden müssen:**
 1. ❌ plugin.xml/lang/img NUR in der JAR → Jameica findet sie nicht!
 2. ❌ Verschachtelte JARs innerhalb der Haupt-JAR → Classloader-Konflikte
 3. ❌ Windows-Backslashes `\` im ZIP → Jameica prüft auf `/`
 4. ❌ PowerShell `Compress-Archive` → Erstellt keine Verzeichnis-Einträge
 5. ❌ `jar uf` auf Windows → Korrupt die JAR
+6. ❌ Build-Ordner-Name (win_dir/linux_dir etc.) als ZIP-Präfix → Jameica findet plugin.xml nicht!
 
 ### 0.2 OCR Tessdata (KRITISCH!)
 
@@ -112,6 +143,26 @@ curl -L -o tessdata/deu.traineddata https://github.com/tesseract-ocr/tessdata_be
 ```
 
 **WICHTIG:** Der `tessdata`-Ordner MUSS in der Plugin-ZIP enthalten sein! Ohne Trainingsdateien liefert Tesseract immer `null` zurück.
+
+### 0.2.1 macOS ARM (aarch64) - Tesseract Native Library (KRITISCH!)
+
+tess4j 5.19.0 bundelt KEINE nativen Tesseract-Libraries für macOS ARM (aarch64).
+Der User MUSS Tesseract via Homebrew installieren:
+
+```bash
+brew install tesseract
+```
+
+Dies installiert `libtesseract.dylib` nach `/opt/homebrew/lib/`.
+
+Das Plugin setzt automatisch `jna.library.path` auf `/opt/homebrew/lib`,
+damit JNA die native Library finden kann.
+
+**Ohne Homebrew-Installation:** OCR funktioniert NICHT auf macOS ARM!
+Fehler: `UnsatisfiedLinkError: Unable to load library 'tesseract'`
+
+**Windows/Linux:** tess4j bundelt die nativen Libraries (JavaCV/OpenCV).
+Nur macOS ARM benötigt die externe Installation.
 
 Unter macOS erfordert die Webcam den `NSCameraUsageDescription`-Schlüssel in der `Info.plist` von Jameica. Ohne diesen Eintrag stürzt macOS Jameica sofort ab, wenn auf die Kamera zugegriffen wird (es erscheint kein Berechtigungsdialog).
 
@@ -146,6 +197,14 @@ Nach dieser Änderung zeigt macOS beim ersten Webcam-Versuch in Jameica einen Be
 
 ### 0.1 Build-Prozess (KORREKT!)
 
+**WICHTIGSTE REGEL: Jede Plattform hat ihr eigenes lib-Verzeichnis!**
+- `lib/` = Windows (22 JARs, ~90MB)
+- `lib-linux/` = Linux (22 JARs, ~73MB)  
+- `lib-macosx/` = macOS Intel (22 JARs, ~71MB)
+- `lib-macosx-arm64/` = macOS ARM (21 JARs, ~58MB)
+
+**❌ NIEMALS `lib/*.jar` für ALLE Plattformen verwenden!**
+
 ```powershell
 # 1. Kompilieren
 $env:JAVA_HOME = "C:\Program Files\Java\jdk-17.0.0.1"
@@ -157,44 +216,142 @@ New-Item -ItemType Directory -Force -Path build_correct | Out-Null
 Copy-Item -Recurse -Force "build\classes\*" build_correct\
 & "C:\Program Files\Java\jdk-17.0.0.1\bin\jar.exe" cf build_correct\datatransfer.jar -C build_correct .
 
-# 3. Plugin-Ordner mit korrekter Struktur erstellen
-# plugin.xml, lang/, img/ auf oberster Ebene!
-Remove-Item -Recurse -Force win_dir -ErrorAction SilentlyContinue
-New-Item -ItemType Directory -Force -Path "win_dir\hbci.datatransfer" | Out-Null
-Copy-Item "build_correct\datatransfer.jar" "win_dir\hbci.datatransfer\"
-Copy-Item "plugin.xml" "win_dir\hbci.datatransfer\"                    # ← TOP LEVEL!
-Copy-Item -Recurse "lang" "win_dir\hbci.datatransfer\lang"             # ← TOP LEVEL!
-Copy-Item -Recurse "img" "win_dir\hbci.datatransfer\img"               # ← TOP LEVEL!
-Copy-Item -Recurse "lib" "win_dir\hbci.datatransfer\lib"
+# 3. Plugin-Ordner pro Plattform erstellen
+$platforms = @(
+    @{Name="windows"; LibDir="lib"; Suffix="-windows"},
+    @{Name="linux"; LibDir="lib-linux"; Suffix="-linux"},
+    @{Name="macosx"; LibDir="lib-macosx"; Suffix="-macosx"},
+    @{Name="macosx-arm64"; LibDir="lib-macosx-arm64"; Suffix="-macosx-arm64"}
+)
 
-# 4. PRÜFEN bevor ZIP erstellt wird!
-Write-Host "=== VERIFIKATION ==="
-Test-Path "win_dir\hbci.datatransfer\plugin.xml"        # MUSS True sein!
-Test-Path "win_dir\hbci.datatransfer\lang"              # MUSS True sein!
-Test-Path "win_dir\hbci.datatransfer\img"               # MUSS True sein!
-Test-Path "win_dir\hbci.datatransfer\datatransfer.jar"  # MUSS True sein!
-Test-Path "win_dir\hbci.datatransfer\lib"               # MUSS True sein!
+foreach ($p in $platforms) {
+    $tmpDir = "release\$($p.Name)_dir"
+    $pluginDir = "$tmpDir\hbci.datatransfer"
+    
+    Remove-Item -Recurse -Force $tmpDir -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Force -Path "$pluginDir\lib" | Out-Null
+    New-Item -ItemType Directory -Force -Path "$pluginDir\lang" | Out-Null
+    New-Item -ItemType Directory -Force -Path "$pluginDir\tessdata" | Out-Null
+    
+    # Dateien kopieren
+    Copy-Item "build_correct\datatransfer.jar" "$pluginDir\"
+    Copy-Item "plugin.xml" "$pluginDir\"                    # ← TOP LEVEL!
+    Copy-Item -Recurse "lang" "$pluginDir\lang"             # ← TOP LEVEL!
+    Copy-Item -Recurse "bilder" "$pluginDir\img"            # ← TOP LEVEL!
+    
+    # ⚠️ KRITISCH: NUR das plattformspezifische lib-Verzeichnis!
+    Copy-Item "$($p.LibDir)\*.jar" "$pluginDir\lib\"        # ← NICHT lib/*.jar!
+    Copy-Item "tessdata\*.traineddata" "$pluginDir\tessdata\"
+    
+    # PRÜFEN
+    $jarCount = (Get-ChildItem "$pluginDir\lib\*.jar").Count
+    Write-Host "$($p.Name): $jarCount JARs aus $($p.LibDir)"
+    
+    # ZIP erstellen
+    Push-Location $tmpDir
+    & "C:\Program Files\7-Zip\7z.exe" a -tzip "..\hbci.datatransfer-VERSION$($p.Suffix).zip" "hbci.datatransfer"
+    Pop-Location
+    
+    # GRÖSSE PRÜFEN
+    $zipFile = Get-Item "release\hbci.datatransfer-VERSION$($p.Suffix).zip"
+    $sizeMB = [math]::Round($zipFile.Length / 1MB, 1)
+    Write-Host "  → $sizeMB MB"
+    
+    Remove-Item -Recurse -Force $tmpDir
+}
 
-# 5. ZIP erstellen (7-Zip, NICHT PowerShell!)
-& "C:\Program Files\7-Zip\7z.exe" a -tzip "release\hbci.datatransfer-VERSION-windows.zip" "win_dir\hbci.datatransfer"
+# 4. VERIFIKATION (ALLE ZIPs!)
+& "C:\Program Files\7-Zip\7z.exe" l "release\hbci.datatransfer-VERSION-windows.zip" | Select-String "D\.\.\.\."
+# Erwartet: hbci.datatransfer  (OHNE win_dir/ Präfix!)
 ```
 
 ### 0.2 Verifikations-Checklist (VOR jedem Release!)
 
+**KRITISCH: Plattformspezifische JAR-Verzeichnisse!**
+- `lib/` = Windows-JARs
+- `lib-linux/` = Linux-JARs
+- `lib-macosx/` = macOS Intel JARs
+- `lib-macosx-arm64/` = macOS ARM JARs
+
+**Jedes Verzeichnis enthält bereits die platform-unabhängigen JARs!**
+- ❌ NIEMALS `lib/*.jar` für Linux/macOS verwenden → enthält Windows-JARs!
+- ✅ IMMER nur das plattformspezifische Verzeichnis verwenden
+
 **VOR dem Upload auf GitHub PRÜFEN:**
 ```powershell
-# Struktur prüfen
-Get-ChildItem "win_dir\hbci.datatransfer" -Name
-# Erwartet: img, lang, lib, datatransfer.jar, plugin.xml
+# 0. PLATTFORM-CHECK: Falsche JARs in ZIP suchen (HÄUFIGSTER FEHLER!)
+function Verify-Zip {
+    param([string]$zipPath, [string]$platform)
+    
+    $content = & "C:\Program Files\7-Zip\7z.exe" l $zipPath
+    $wrongPlatform = switch ($platform) {
+        "windows" { "linux|macosx" }
+        "linux" { "windows|macosx" }
+        "macosx" { "windows|linux" }
+        "macosx-arm64" { "windows|linux" }
+    }
+    $wrongJars = $content | Select-String "\.jar" | Where-Object { $_ -match $wrongPlatform }
+    
+    if ($wrongJars) {
+        Write-Host "FEHLER: Falsche plattformspezifische JARs in $zipPath!" -ForegroundColor Red
+        $wrongJars | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
+        return $false
+    }
+    return $true
+}
 
-# ZIP-Inhalt prüfen
-& "C:\Program Files\7-Zip\7z.exe" l "release\hbci.datatransfer-VERSION-windows.zip" | Select-String "plugin.xml|lang/|img/"
-# Erwartet: Einträge für plugin.xml, lang/, img/ auf oberster Ebene!
+# Prüfe ALLE ZIPs
+$zipFiles = Get-ChildItem "release\hbci.datatransfer-VERSION-*.zip"
+$allOk = $true
+foreach ($zip in $zipFiles) {
+    $platform = if ($zip.Name -match "windows") { "windows" }
+                elseif ($zip.Name -match "linux") { "linux" }
+                elseif ($zip.Name -match "macosx-arm64") { "macosx-arm64" }
+                elseif ($zip.Name -match "macosx") { "macosx" }
+    if (-not (Verify-Zip $zip.FullName $platform)) { $allOk = $false }
+}
+if (-not $allOk) { Write-Host "ABBRUCH: Korrigiere ZIPs!" -ForegroundColor Red; exit 1 }
+
+# 1. Struktur des Build-Verzeichnisses prüfen
+Get-ChildItem "win_dir\hbci.datatransfer" -Name
+# Erwartet: img, lang, lib, tessdata, datatransfer.jar, plugin.xml
+
+# 2. ZIP-Inhalt prüfen - OBERSTE EBENE!
+& "C:\Program Files\7-Zip\7z.exe" l "release\hbci.datatransfer-VERSION-windows.zip" | Select-String "D\.\.\.\."
+# Erwartet: hbci.datatransfer  (ERSTE Zeile! OHNE win_dir/ etc.)
+
+# 3. plugin.xml muss in der ZIP-obersten Ebene liegen
+& "C:\Program Files\7-Zip\7z.exe" l "release\hbci.datatransfer-VERSION-windows.zip" | Select-String "plugin.xml"
+# Erwartet: hbci.datatransfer\plugin.xml
+
+# 4. tessdata muss enthalten sein
+& "C:\Program Files\7-Zip\7z.exe" l "release\hbci.datatransfer-VERSION-windows.zip" | Select-String "tessdata"
+# Erwartet: hbci.datatansfer\tessdata\deu.traineddata
+
+# 5. ZIP-Größen prüfen (Vergleich mit Vorgängerversion!)
+$zipFiles = Get-ChildItem "release\hbci.datatransfer-VERSION-*.zip"
+foreach ($zip in $zipFiles) {
+    $sizeMB = [math]::Round($zip.Length / 1MB, 1)
+    $status = if ($sizeMB -ge 56 -and $sizeMB -le 93) { "OK" }
+              elseif ($sizeMB -lt 56) { "ZU KLEIN - Dependencies fehlen!" }
+              else { "ZU GROSS - Falsche JARs eingefügt?" }
+    Write-Host "$($zip.Name): $sizeMB MB - $status"
+}
+# Erwartet: Windows ~90MB, Linux ~73MB, macOS ~71MB, macOS ARM ~58MB
+# Bei >100MB: Wahrscheinlich plattfremde JARs enthalten!
 ```
+
+**FALLS Die oberste Ebene `win_dir/` oder `linux_dir/` etc. ist:**
+- ❌ Die ZIP wurde FALSCH erstellt! (Build-Ordner als Präfix)
+- → ZIP löschen, mit `Push-Location` in Build-Ordner neu erstellen!
 
 **FALLS plugin.xml/lang/img FEHLT:**
 - Die Dateien wurden NUR in die JAR gepackt
 - LOSE die Dateien aus der JAR und kopiere sie auf die oberste Ebene!
+
+**FALLS ZIP > 100MB:**
+- ❌ Falsche plattformspezifische JARs enthalten (z.B. Windows-JARs in Linux-ZIP)
+- → Prüfe ob `lib/*.jar` (Windows) statt `lib-linux/*.jar` verwendet wurde!
 
 ### 0.3 Classfinder in plugin.xml
 
@@ -504,3 +661,52 @@ u.store();
 
 ### v2.0.0
 - Fusion von QRtransfer und OCRtransfer
+
+## Schnell-Verifikation (nach jedem Build)
+
+```powershell
+# Diese Funktion NACH dem Build aufrufen!
+function Verify-AllZips {
+    param([string]$version)
+    
+    $base = "C:\Users\istra\Documents\claude_ps\DataTransfer"
+    $7z = "C:\Program Files\7-Zip\7z.exe"
+    
+    $checks = @(
+        @{Pattern="windows"; WrongPattern="linux|macosx"; ExpectedMin=88; ExpectedMax=93},
+        @{Pattern="linux"; WrongPattern="windows|macosx"; ExpectedMin=71; ExpectedMax=75},
+        @{Pattern="macosx-arm64"; WrongPattern="windows|linux"; ExpectedMin=56; ExpectedMax=60},
+        @{Pattern="macosx"; WrongPattern="windows|linux"; ExpectedMin=69; ExpectedMax=73}
+    )
+    
+    $allOk = $true
+    foreach ($check in $checks) {
+        $zipFile = Get-ChildItem "$base\release\*-$version-$($check.Pattern).zip" | Select-Object -First 1
+        if (-not $zipFile) { Write-Host "FEHLER: $($check.Pattern) ZIP nicht gefunden!" -ForegroundColor Red; continue }
+        
+        $content = & $7z l $zipFile.FullName
+        
+        # Check for wrong platform JARs
+        $wrongJars = $content | Select-String "\.jar" | Where-Object { $_ -match $check.WrongPattern }
+        if ($wrongJars) {
+            Write-Host "FEHLER: Falsche JARs in $($check.Pattern)!" -ForegroundColor Red
+            $wrongJars | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
+            $allOk = $false
+        }
+        
+        # Check size
+        $sizeMB = [math]::Round($zipFile.Length / 1MB, 1)
+        if ($sizeMB -lt $check.ExpectedMin -or $sizeMB -gt $check.ExpectedMax) {
+            Write-Host "WARNUNG: $($check.Pattern) ist $sizeMB MB (erwartet $($check.ExpectedMin)-$($check.ExpectedMax) MB)" -ForegroundColor Yellow
+        } else {
+            Write-Host "OK: $($check.Pattern) = $sizeMB MB" -ForegroundColor Green
+        }
+    }
+    
+    if ($allOk) { Write-Host "`nALLE CHECKS BESTANDEN!" -ForegroundColor Green }
+    else { Write-Host "`nFEHLER GEFUNDEN - ZIPs prüfen!" -ForegroundColor Red }
+}
+
+# Verwendung:
+Verify-AllZips "2.4.5"
+```

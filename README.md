@@ -87,6 +87,27 @@ mkdir tessdata
 curl -L -o tessdata/deu.traineddata https://github.com/tesseract-ocr/tessdata_best/raw/main/deu.traineddata
 ```
 
+### macOS: Tesseract Installation (OCR)
+
+On macOS, Tesseract must be installed separately. The plugin uses tess4j, which bundles native Tesseract libraries for Windows and Linux, but not for macOS.
+
+**Installation with Homebrew:**
+```bash
+brew install tesseract
+brew install tesseract-lang-deu
+```
+
+`brew install tesseract-lang-deu` installs German language support. Training files will be installed to `/opt/homebrew/share/tessdata/`.
+
+**If Homebrew is not installed:**
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install tesseract
+brew install tesseract-lang-deu
+```
+
+**Note:** Without this installation, the error `UnsatisfiedLinkError: Unable to load library 'tesseract'` will appear in the Jameica log.
+
 ### macOS Webcam Setup
 
 On macOS, the webcam requires the `NSCameraUsageDescription` key in Jameica's `Info.plist`. Without this, macOS will crash Jameica immediately when trying to access the camera (no permission dialog appears).
