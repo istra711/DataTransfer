@@ -145,7 +145,15 @@ After this change, macOS will show a permission dialog the first time you use th
 
 This plugin requires a patched version of Hibiscus that uses a global ClassFinder for plugin detection. The standard Hibiscus only finds plugins loaded by its own classloader, which prevents external plugins like DataTransfer from appearing in the Import dialog.
 
-**Download the patched Hibiscus:** [hibiscus-patched.zip](https://github.com/istra711/DataTransfer/releases/download/v2.3.0/hibiscus-patched.zip)
+**Recommended: Use Nightly Build**
+
+The easiest solution is to switch to the current Nightly Build of Hibiscus. It already contains the necessary changes:
+👉 [Use Nightly Builds](https://www.willuhn.de/wiki/doku.php?id=downloads_nutzen)
+
+**Alternative: Patched Hibiscus Version**
+
+If you don't want to switch to the Nightly Build, a patched version is also available:
+[hibiscus-patched.zip](https://github.com/istra711/DataTransfer/releases/download/v2.3.0/hibiscus-patched.zip)
 
 **Installation:**
 1. Back up your existing `hibiscus.jar` from `jameica/plugins/hibiscus/`
@@ -153,11 +161,7 @@ This plugin requires a patched version of Hibiscus that uses a global ClassFinde
 3. Replace `hibiscus.jar` in `jameica/plugins/hibiscus/` with the patched version
 4. Restart Jameica
 
-The patch changes `IORegistry.java` to use `Application.getClassLoader().getClassFinder()` instead of the plugin-specific classloader, allowing all installed plugins to be discovered.
-
-**Note:** The patched Hibiscus is **not strictly required**. The plugin works with the current official Hibiscus release, but the import functions (e.g., "Invoice File (PDF/Image) - OCR/QR" in the import dialog) will not be available. You can still use the plugin via the menu (Datei > Rechnungsdatei laden, etc.).
-
-The required changes have been proposed by the Hibiscus developer (see [Hibiscus commit cbbce4ad](https://github.com/willuhn/hibiscus/commit/cbbce4ad6abafc652011e5c777338cc74b786d38)) and will be included in a future official Hibiscus release. Once that version is available, the patched Hibiscus download will no longer be required.
+**Note:** The plugin works with the current official Hibiscus release, but the import functions (e.g., "Invoice File (PDF/Image) - OCR/QR" in the import dialog) will not be available. You can still use the plugin via the menu (Datei > Rechnungsdatei laden, etc.).
 
 ## Installation
 

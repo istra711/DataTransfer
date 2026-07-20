@@ -143,7 +143,15 @@ Nach dieser Änderung zeigt macOS beim ersten Webcam-Versuch in Jameica einen Be
 
 Dieses Plugin erfordert eine gepatchte Version von Hibiscus, die einen globalen ClassFinder für die Plugin-Erkennung verwendet. Das Standard-Hibiscus findet nur Plugins, die vom eigenen ClassLoader geladen werden, was verhindert, dass externe Plugins wie DataTransfer im Import-Dialog erscheinen.
 
-**Download des gepatchten Hibiscus:** [hibiscus-patched.zip](https://github.com/istra711/DataTransfer/releases/download/v2.3.0/hibiscus-patched.zip)
+**Empfohlen: Nightly-Build verwenden**
+
+Die einfachste Lösung ist der Wechsel zum aktuellen Nightly-Build von Hibiscus. Dieser enthält bereits die erforderlichen Änderungen:
+👉 [Nightly-Builds nutzen](https://www.willuhn.de/wiki/doku.php?id=downloads_nutzen)
+
+**Alternative: Geflickte Hibiscus-Version**
+
+Falls Sie nicht zum Nightly-Build wechseln möchten, steht auch eine gepatchte Version zur Verfügung:
+[hibiscus-patched.zip](https://github.com/istra711/DataTransfer/releases/download/v2.3.0/hibiscus-patched.zip)
 
 **Installation:**
 1. Sichern Sie Ihre bestehende `hibiscus.jar` aus `jameica/plugins/hibiscus/`
@@ -151,11 +159,7 @@ Dieses Plugin erfordert eine gepatchte Version von Hibiscus, die einen globalen 
 3. Ersetzen Sie `hibiscus.jar` in `jameica/plugins/hibiscus/` durch die gepatchte Version
 4. Starten Sie Jameica neu
 
-Der Patch ändert `IORegistry.java`, um `Application.getClassLoader().getClassFinder()` statt des plugin-spezifischen ClassLoaders zu verwenden, sodass alle installierten Plugins gefunden werden können.
-
-**Hinweis:** Die gepatchte Hibiscus-Version ist **nicht zwingend erforderlich**. Das Plugin funktioniert auch mit dem derzeitigen offiziellen Hibiscus-Release, aber die Importer-Funktionen (z.B. "Rechnungs-Datei(PDF/Image) - OCR/QR" im Import-Dialog) werden nicht angezeigt. Sie können das Plugin weiterhin über das Menü verwenden (Datei > Rechnungsdatei laden, etc.).
-
-Die erforderlichen Änderungen wurden vom Hibiscus-Entwickler vorgeschlagen (siehe [Hibiscus Commit cbbce4ad](https://github.com/willuhn/hibiscus/commit/cbbce4ad6abafc652011e5c777338cc74b786d38)) und werden in einer zukünftigen offiziellen Hibiscus-Version enthalten sein. Sobald diese Version verfügbar ist, wird die gepatchte Hibiscus-Version nicht mehr benötigt.
+**Hinweis:** Das Plugin funktioniert auch mit dem derzeitigen offiziellen Hibiscus-Release, aber die Importer-Funktionen (z.B. "Rechnungs-Datei(PDF/Image) - OCR/QR" im Import-Dialog) werden nicht angezeigt. Sie können das Plugin weiterhin über das Menü verwenden (Datei > Rechnungsdatei laden, etc.).
 
 ## Installation
 
