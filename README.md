@@ -110,11 +110,11 @@ brew install tesseract-lang-deu
 
 ### macOS Webcam Setup
 
-On macOS, the webcam requires the `NSCameraUsageDescription` key in Jameica's `Info.plist`. Without this, macOS will crash Jameica immediately when trying to access the camera (no permission dialog appears).
+**Jameica Nightly Build (2026-07-19) and later:** Camera permission is already included in Jameica. No additional steps needed.
 
-**Why this is needed:** Since macOS Big Sur (11.0), Apple has hardened the TCC (Transparency, Consent, and Control) privacy system. Apps without a camera usage description are killed immediately with `SIGABRT` instead of showing a permission dialog.
+**Older Jameica versions:** On macOS, the webcam requires the `NSCameraUsageDescription` key in Jameica's `Info.plist`. Without this, macOS will crash Jameica immediately when trying to access the camera (no permission dialog appears).
 
-**Quick Fix (Recommended):**
+**Quick Fix:**
 
 Run the provided script in Terminal:
 ```bash
