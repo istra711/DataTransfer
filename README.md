@@ -54,6 +54,8 @@ A combined Jameica/Hibiscus plugin for reading SEPA payment data from QR codes a
 - Configurable protocol (HTTP/HTTPS/RTSP), address, port, path, credentials, timeout
 - Settings persist across sessions
 
+![Settings](img/screenshots/settings.png)
+
 ### OCR Support
 
 - Tesseract 5.5.2 (via tess4j 5.19.0)

@@ -52,6 +52,8 @@ Kombiniertes Jameica/Hibiscus-Plugin zum Lesen von SEPA-Zahlungsdaten aus QR-Cod
 - Konfigurierbares Protokoll (HTTP/HTTPS/RTSP), Adresse, Port, Pfad, Zugangsdaten, Timeout
 - Einstellungen werden gespeichert
 
+![Einstellungen](img/screenshots/settings.png)
+
 ### OCR-Unterstützung
 
 - Tesseract 5.5.2 (via tess4j 5.19.0)
