@@ -30,7 +30,8 @@ A combined Jameica/Hibiscus plugin for reading SEPA payment data from QR codes a
 
 - **File** - Load PDF invoices or image files (PNG, JPG, BMP, TIFF)
 - **Clipboard** - Read images directly from clipboard
-- **Webcam** - Scan QR codes live with camera
+- **Webcam** - Scan QR codes live with camera (local or IP camera)
+- **IP Camera** - Use Android phone (IP Webcam/DroidCam) or RTSP cameras as QR scanner
 
 ![Plugin Menu](img/screenshots/menu.png)
 
@@ -41,6 +42,17 @@ A combined Jameica/Hibiscus plugin for reading SEPA payment data from QR codes a
 - Multi-QR detection: Automatically find and select multiple QR codes in a PDF
 
 ![QR Code Selection](img/screenshots/qr-selector.png)
+
+### IP Camera / Webcam
+
+- **Local webcam** - Direct USB/built-in camera via OpenCV VideoCapture
+- **IP cameras** - Use your phone or network camera as QR scanner:
+  - **Android**: IP Webcam (port 8080) or DroidCam (port 4747)
+  - **RTSP cameras**: Any RTSP stream (e.g., security cameras)
+  - **iPhone**: Limited support via third-party apps
+- **Camera rotation**: 0, 90, 180, 270 degrees (for both local and IP camera)
+- Configurable protocol (HTTP/HTTPS/RTSP), address, port, path, credentials, timeout
+- Settings persist across sessions
 
 ### OCR Support
 
@@ -166,10 +178,10 @@ If you don't want to switch to the Nightly Build, a patched version is also avai
 ## Installation
 
 1. Download the correct version for your platform from the [Releases](https://github.com/istra711/DataTransfer/releases) page:
-   - **Windows**: `hbci.datatransfer-2.4.5-windows.zip`
-   - **Linux**: `hbci.datatransfer-2.4.5-linux.zip`
-   - **macOS Intel**: `hbci.datatransfer-2.4.5-macosx.zip` (x86_64)
-   - **macOS Apple Silicon**: `hbci.datatransfer-2.4.5-macosx-arm64.zip` (M1/M2/M3/M4)
+   - **Windows**: `hbci.datatransfer-2.4.6-windows.zip`
+   - **Linux**: `hbci.datatransfer-2.4.6-linux.zip`
+   - **macOS Intel**: `hbci.datatransfer-2.4.6-macos.zip` (x86_64)
+   - **macOS Apple Silicon**: `hbci.datatransfer-2.4.6-macos-arm64.zip` (M1/M2/M3/M4)
 2. Start Jameica
 3. Navigate to **File > Search for plugins online... > Install plugin manually...**
 4. Select the downloaded ZIP file
@@ -250,6 +262,7 @@ src/de/willuhn/jameica/hbci/datatransfer/
 - **tess4j** 5.19.0 - Java wrapper for Tesseract 5.5.2 OCR
 - **PDFBox** 3.0.7 - PDF text extraction and rendering
 - **ZXing** 3.5.3 - QR code decoding (from Jameica/Hibiscus)
+- **JavaCV** 1.5.9 - OpenCV/FFmpeg bindings for webcam and IP camera support
 - **JNA** 5.18.1 - Native library access
 - **SLF4J** 2.0.18 - Logging API
 
@@ -268,6 +281,15 @@ The plugin uses an intelligent detection algorithm:
    - QR code only (no OCR)
 
 ## Version History
+
+### v2.4.6
+
+- **IP camera support**: Use Android phones (IP Webcam, DroidCam) or RTSP cameras as QR scanner via FFmpegFrameGrabber
+- **Camera rotation**: Rotate camera image 0/90/180/270 degrees (for both local and IP camera)
+- **Compact settings layout**: Scrollable settings page with side-by-side label groups and section headlines
+- **Device index from settings**: Local webcam uses saved device index directly (no dialog if configured)
+- **Updated help text**: IP camera setup instructions for Android, DroidCam, iPhone, and RTSP cameras
+- New settings: Source (Local/IP), Protocol, Address, Port, Path, Username, Password, Timeout, Rotation
 
 ### v2.4.5
 
