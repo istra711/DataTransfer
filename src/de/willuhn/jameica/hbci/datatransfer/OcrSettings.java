@@ -31,6 +31,7 @@ public class OcrSettings {
 
     private static OcrSettings instance;
 
+    // OCR settings
     private String language = "deu";
     private String pageSegmentationMode = PSM_AUTO;
     private String ocrEngineMode = OEM_LSTM_ONLY;
@@ -40,7 +41,7 @@ public class OcrSettings {
     private int dpi = 300;
     private boolean preserveInterwordSpaces = true;
 
-    // Empfaenger-Keywords (kommagetrennt)
+    // Keywords
     private String empfaengerKeywords = "Empfänger,Zahlungsempfänger,Rechnungsempfänger,Kontoinhaber,"
         + "Begünstigter,Name:,Name des Empfängers,Firma,Firma:,Unternehmen,"
         + "Rechnungssteller,Gläubiger,Kunde,Kunde:,Account Holder,Beneficiary,Recipient,"
@@ -48,11 +49,22 @@ public class OcrSettings {
         + "Für:,Für Frau,Für Herr,Bei:,Bei Frau,Bei Herr,"
         + "Lieferung an,Versand an";
 
-    // Verwendungszweck-Keywords (kommagetrennt)
     private String verwendungszweckKeywords = "Verwendungszweck,Verw.Zweck,Zweck,Purpose,Reference,"
         + "Referenz,Betreff,Rechnungsnr,Rechnungs-Nr,Invoice No,"
         + "Kundenreferenz,Leistungszeitraum,Auftragsnummer,"
         + "Rechnung Nr.,Invoice No.,Kundennummer,Vertragsnummer";
+
+    // QR/Webcam settings
+    private String webcamSource = "local"; // "local" or "ip"
+    private int localDeviceIndex = 0;
+    private String ipProtocol = "http"; // http, https, rtsp
+    private String ipAddress = "";
+    private int ipPort = 8080;
+    private String ipPath = "/video"; // URL-Pfad (z.B. /video, /mjpg/video.mjpg)
+    private String ipUsername = "";
+    private String ipPassword = "";
+    private int ipTimeout = 20;
+    private int rotation = 0; // 0, 90, 180, 270
 
     private OcrSettings() {
         load();
@@ -81,6 +93,7 @@ public class OcrSettings {
         Properties props = new Properties();
         try (FileInputStream fis = new FileInputStream(file)) {
             props.load(fis);
+            // OCR settings
             language = props.getProperty("ocr.language", language);
             pageSegmentationMode = props.getProperty("ocr.psm", pageSegmentationMode);
             ocrEngineMode = props.getProperty("ocr.oem", ocrEngineMode);
@@ -92,6 +105,17 @@ public class OcrSettings {
                 props.getProperty("ocr.preserveSpaces", String.valueOf(preserveInterwordSpaces)));
             empfaengerKeywords = props.getProperty("ocr.empfaengerKeywords", empfaengerKeywords);
             verwendungszweckKeywords = props.getProperty("ocr.verwendungszweckKeywords", verwendungszweckKeywords);
+            // QR/Webcam settings
+            webcamSource = props.getProperty("webcam.source", webcamSource);
+            localDeviceIndex = Integer.parseInt(props.getProperty("webcam.local.deviceIndex", String.valueOf(localDeviceIndex)));
+            ipProtocol = props.getProperty("webcam.ip.protocol", ipProtocol);
+            ipAddress = props.getProperty("webcam.ip.address", ipAddress);
+            ipPort = Integer.parseInt(props.getProperty("webcam.ip.port", String.valueOf(ipPort)));
+            ipPath = props.getProperty("webcam.ip.path", ipPath);
+            ipUsername = props.getProperty("webcam.ip.username", ipUsername);
+            ipPassword = props.getProperty("webcam.ip.password", ipPassword);
+            ipTimeout = Integer.parseInt(props.getProperty("webcam.ip.timeout", String.valueOf(ipTimeout)));
+            rotation = Integer.parseInt(props.getProperty("webcam.rotation", String.valueOf(rotation)));
             logger.info("Einstellungen geladen: " + file.getAbsolutePath());
         } catch (Exception e) {
             logger.warning("Fehler beim Laden der Einstellungen: " + e.getMessage());
@@ -100,6 +124,7 @@ public class OcrSettings {
 
     public void save() {
         Properties props = new Properties();
+        // OCR settings
         props.setProperty("ocr.language", language);
         props.setProperty("ocr.psm", pageSegmentationMode);
         props.setProperty("ocr.oem", ocrEngineMode);
@@ -110,10 +135,21 @@ public class OcrSettings {
         props.setProperty("ocr.preserveSpaces", String.valueOf(preserveInterwordSpaces));
         props.setProperty("ocr.empfaengerKeywords", empfaengerKeywords);
         props.setProperty("ocr.verwendungszweckKeywords", verwendungszweckKeywords);
+        // QR/Webcam settings
+        props.setProperty("webcam.source", webcamSource);
+        props.setProperty("webcam.local.deviceIndex", String.valueOf(localDeviceIndex));
+        props.setProperty("webcam.ip.protocol", ipProtocol);
+        props.setProperty("webcam.ip.address", ipAddress);
+        props.setProperty("webcam.ip.port", String.valueOf(ipPort));
+        props.setProperty("webcam.ip.path", ipPath);
+        props.setProperty("webcam.ip.username", ipUsername);
+        props.setProperty("webcam.ip.password", ipPassword);
+        props.setProperty("webcam.ip.timeout", String.valueOf(ipTimeout));
+        props.setProperty("webcam.rotation", String.valueOf(rotation));
 
         File file = new File(getSettingsFile());
         try (FileOutputStream fos = new FileOutputStream(file)) {
-            props.store(fos, "OCR-Einstellungen fuer Tesseract");
+            props.store(fos, "OCR und QR/Webcam Einstellungen");
             logger.info("Einstellungen gespeichert: " + file.getAbsolutePath());
         } catch (Exception e) {
             logger.warning("Fehler beim Speichern der Einstellungen: " + e.getMessage());
@@ -172,5 +208,60 @@ public class OcrSettings {
             result[i] = result[i].trim();
         }
         return result;
+    }
+
+    // QR/Webcam getters and setters
+
+    public String getWebcamSource() { return webcamSource; }
+    public void setWebcamSource(String source) { this.webcamSource = source; }
+
+    public int getLocalDeviceIndex() { return localDeviceIndex; }
+    public void setLocalDeviceIndex(int index) { this.localDeviceIndex = index; }
+
+    public String getIpProtocol() { return ipProtocol; }
+    public void setIpProtocol(String protocol) { this.ipProtocol = protocol; }
+
+    public String getIpAddress() { return ipAddress; }
+    public void setIpAddress(String address) { this.ipAddress = address; }
+
+    public int getIpPort() { return ipPort; }
+    public void setIpPort(int port) { this.ipPort = port; }
+
+    public String getIpPath() { return ipPath; }
+    public void setIpPath(String path) { this.ipPath = path; }
+
+    public String getIpUsername() { return ipUsername; }
+    public void setIpUsername(String username) { this.ipUsername = username; }
+
+    public String getIpPassword() { return ipPassword; }
+    public void setIpPassword(String password) { this.ipPassword = password; }
+
+    public int getIpTimeout() { return ipTimeout; }
+    public void setIpTimeout(int timeout) { this.ipTimeout = timeout; }
+
+    public int getRotation() { return rotation; }
+    public void setRotation(int rotation) { this.rotation = rotation; }
+
+    /**
+     * Build the full IP camera URL from settings.
+     * @return URL string like "http://192.168.1.100:8080/video" or null if not configured
+     */
+    public String getIpCameraUrl() {
+        if (ipAddress == null || ipAddress.trim().isEmpty()) {
+            return null;
+        }
+        StringBuilder url = new StringBuilder();
+        url.append(ipProtocol).append("://").append(ipAddress.trim());
+        if (ipPort > 0 && ipPort != 80) {
+            url.append(":").append(ipPort);
+        }
+        if (ipPath != null && !ipPath.trim().isEmpty()) {
+            String path = ipPath.trim();
+            if (!path.startsWith("/")) {
+                path = "/" + path;
+            }
+            url.append(path);
+        }
+        return url.toString();
     }
 }

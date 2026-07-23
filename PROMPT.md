@@ -10,7 +10,7 @@ Kombiniertes Jameica/Hibiscus-Plugin zum Lesen von SEPA-Zahlungsdaten aus QR-Cod
 - Jameica-Version: 2.10.0+
 - Hibiscus-Version: 2.10.0+
 - Java: 8+ (source/target)
-- Aktuelle Version: v2.4.5
+- Aktuelle Version: v2.4.6
 
 ## Verzeichnisstruktur
 
@@ -195,15 +195,43 @@ chmod +x fix-webcam-permission.sh
 
 Nach dieser Änderung zeigt macOS beim ersten Webcam-Versuch in Jameica einen Berechtigungsdialog an.
 
-### 0.1 Build-Prozess (KORREKT!)
+### 0.1 Plattform-Referenz (STAND: v2.4.5)
 
-**WICHTIGSTE REGEL: Jede Plattform hat ihr eigenes lib-Verzeichnis!**
-- `lib/` = Windows (22 JARs, ~90MB)
-- `lib-linux/` = Linux (22 JARs, ~73MB)  
-- `lib-macosx/` = macOS Intel (22 JARs, ~71MB)
-- `lib-macosx-arm64/` = macOS ARM (21 JARs, ~58MB)
+> **MERKE:** Jede Plattform hat ihr eigenes lib-Verzeichnis. Die platform-abhängigen JARs sind bereits in jedem Verzeichnis enthalten. NIEMALS `lib/*.jar` für Linux/macOS verwenden!
 
-**❌ NIEMALS `lib/*.jar` für ALLE Plattformen verwenden!**
+| Plattform | ZIP-Name | lib-Verzeichnis | Plattform-JARs (Pattern) | ZIP-Größe | JARs in ZIP |
+|-----------|----------|-----------------|--------------------------|-----------|-------------|
+| **Windows** | `*-windows.zip` | `lib/` | `*-windows-x86_64.jar` | ~90-98 MB | 22 |
+| **Linux** | `*-linux.zip` | `lib-linux/` | `*-linux-x86_64.jar` | ~80 MB | 22 |
+| **macOS Intel** | `*-macos.zip` | `lib-macosx/` | `*-macosx-x86_64.jar` | ~78 MB | 22 |
+| **macOS ARM** | `*-macos-arm64.zip` | `lib-macosx-arm64/` | `*-macosx-arm64.jar` | ~66 MB | 21 |
+
+#### Plattform-spezifische JARs pro Verzeichnis
+
+| JAR-Name | Windows | Linux | macOS Intel | macOS ARM |
+|----------|---------|-------|-------------|-----------|
+| `javacpp-1.5.9-*.jar` | ✅ windows-x86_64 | ✅ linux-x86_64 | ✅ macosx-x86_64 | ✅ macosx-arm64 |
+| `opencv-4.7.0-1.5.9-*.jar` | ✅ windows-x86_64 (31 MB) | ✅ linux-x86_64 (28 MB) | ✅ macosx-x86_64 (25 MB) | ✅ macosx-arm64 (21 MB) |
+| `openblas-0.3.23-1.5.9-*.jar` | ✅ windows-x86_64 (29 MB) | ✅ linux-x86_64 (14 MB) | ✅ macosx-x86_64 (15 MB) | ✅ macosx-arm64 (7 MB) |
+| `fftw-3.3.10-1.5.9-*.jar` | ✅ windows-x86_64 (2 MB) | ✅ linux-x86_64 (2 MB) | ✅ macosx-x86_64 (1 MB) | ❌ nicht enthalten |
+
+#### Gemeinsame JARs (in ALLEN Verzeichnissen)
+
+```
+commons-io-2.22.0.jar, commons-logging-1.3.3.jar, core-3.5.3.jar,
+fontbox-3.0.3.jar, jai-imageio-core-1.4.0.jar, javacpp-1.5.9.jar,
+javacv-1.5.9.jar, javase-3.5.3.jar, jna-5.18.1.jar, jna-platform-5.18.1.jar,
+lept4j-1.24.0.jar, openblas-0.3.23-1.5.9.jar, opencv-4.7.0-1.5.9.jar,
+pdfbox-3.0.7.jar, pdfbox-io-3.0.3.jar, slf4j-api-2.0.18.jar, tess4j-5.19.0.jar
+```
+
+#### ⚠️ Häufigste Fehler
+
+1. **`lib/*.jar` für alle Plattformen verwendet** → Windows-JARs in Linux/macOS ZIP
+2. **ARM64 JARs nicht gelöscht nach Build** → macOS Intel ZIP wird zu groß (>100 MB)
+3. **Falsches lib-Verzeichnis angesprochen** → Plattform-JARs fehlen in ZIP
+
+### 0.2 Build-Prozess (KORREKT!)
 
 ```powershell
 # 1. Kompilieren
@@ -265,17 +293,13 @@ foreach ($p in $platforms) {
 # Erwartet: hbci.datatransfer  (OHNE win_dir/ Präfix!)
 ```
 
-### 0.2 Verifikations-Checklist (VOR jedem Release!)
+> ⚠️ **HÄUFIGER FEHLER:** `lang/` Vergessen! Die build.xml muss `lang/*.properties` in JEDE ZIP kopieren.
+> Symptome: Alle Labels zeigen rohe Keys (z.B. "settings.title" statt "Einstellungen"), Hilfe-Dialog leer.
+> Fix: In `dist`-Target UND `build-platform-zip`-Macro einen `<copy>` für `lang/` einfügen.
 
-**KRITISCH: Plattformspezifische JAR-Verzeichnisse!**
-- `lib/` = Windows-JARs
-- `lib-linux/` = Linux-JARs
-- `lib-macosx/` = macOS Intel JARs
-- `lib-macosx-arm64/` = macOS ARM JARs
+### 0.3 Verifikations-Checklist (VOR jedem Release!)
 
-**Jedes Verzeichnis enthält bereits die platform-unabhängigen JARs!**
-- ❌ NIEMALS `lib/*.jar` für Linux/macOS verwenden → enthält Windows-JARs!
-- ✅ IMMER nur das plattformspezifische Verzeichnis verwenden
+> Siehe Tabelle in **0.1** für lib-Verzeichnisse, JAR-Patterns und erwartete ZIP-Größen.
 
 **VOR dem Upload auf GitHub PRÜFEN:**
 ```powershell
@@ -297,6 +321,14 @@ function Verify-Zip {
         $wrongJars | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
         return $false
     }
+    
+    # ⚠️ KRITISCH: lang/ MUSS in der ZIP sein (sonst keine Labels/Hilfe!)
+    if (-not ($content | Select-String "lang\\hbci_datatransfer")) {
+        Write-Host "FEHLER: lang/ Verzeichnis FEHLT in $zipPath!" -ForegroundColor Red
+        Write-Host "  → Labels werden als rohe Keys angezeigt, Hilfe funktioniert nicht!" -ForegroundColor Red
+        return $false
+    }
+    
     return $true
 }
 

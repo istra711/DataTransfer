@@ -22,4 +22,11 @@ Thumbs.db
 # Logs
 *.log
 
-release/*.zip
+release/
+
+# Build temp dirs
+linux_dir/
+macarm_dir/
+macosx_dir/
+win_dir/
+old_plugin/

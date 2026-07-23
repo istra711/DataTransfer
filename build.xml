@@ -9,7 +9,7 @@
     <property name="build.classes" value="${build.dir}/classes"/>
     <property name="dist.dir" value="dist"/>
     <property name="plugin.name" value="hbci.datatransfer"/>
-    <property name="plugin.version" value="2.0.0"/>
+    <property name="plugin.version" value="2.4.6"/>
     <property name="jameica.home" value="G:/jameica_portable_V1/jameica"/>
     <property name="saved.jars" value="${java.io.tmpdir}/datatransfer-build/saved-jars"/>
 
@@ -55,12 +55,14 @@
         </javac>
     </target>
 
-    <!-- Create JAR - just copy the pre-built fat JAR -->
-    <target name="jar">
-        <copy file="dist/hbci.datatransfer.jar" tofile="dist/${plugin.name}.jar" overwrite="true"/>
+    <!-- Create JAR from compiled classes -->
+    <target name="jar" depends="compile">
+        <jar destfile="${dist.dir}/${plugin.name}.jar"
+             basedir="${build.classes}"/>
     </target>
 
     <!-- Create distribution directory (single platform) -->
+    <!-- ⚠️ KRITISCH: lang/ MUSS kopiert werden! Sonst keine Labels/Hilfe in Jameica! -->
     <target name="dist" depends="jar">
         <mkdir dir="${dist.dir}/${plugin.name}"/>
         <copy file="${dist.dir}/${plugin.name}.jar" todir="${dist.dir}/${plugin.name}/"/>
@@ -70,6 +72,11 @@
                 <include name="**/*.jar"/>
                 <exclude name="jameica.jar"/>
                 <exclude name="hibiscus.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="${dist.dir}/${plugin.name}/lang">
+            <fileset dir="lang">
+                <include name="**/*.properties"/>
             </fileset>
         </copy>
         <copy todir="${dist.dir}/${plugin.name}/tessdata">
@@ -103,6 +110,13 @@
 
     <!-- Restore lib/ JARs from temp -->
     <target name="restore-jars">
+        <delete>
+            <fileset dir="${lib.dir}">
+                <include name="**/*.jar"/>
+                <exclude name="jameica.jar"/>
+                <exclude name="hibiscus.jar"/>
+            </fileset>
+        </delete>
         <copy todir="${lib.dir}" overwrite="true">
             <fileset dir="${saved.jars}">
                 <include name="**/*.jar"/>
@@ -111,6 +125,7 @@
     </target>
 
     <!-- Macro: create dist directory + ZIP for one platform -->
+    <!-- ⚠️ MUSS: lib/, lang/, tessdata/, img/ kopieren! -->
     <macrodef name="build-platform-zip">
         <attribute name="platform"/>
         <element name="remove-jars"/>
@@ -124,6 +139,11 @@
                     <include name="**/*.jar"/>
                     <exclude name="jameica.jar"/>
                     <exclude name="hibiscus.jar"/>
+                </fileset>
+            </copy>
+            <copy todir="${dist.dir}/${plugin.name}/lang">
+                <fileset dir="lang">
+                    <include name="**/*.properties"/>
                 </fileset>
             </copy>
             <copy todir="${dist.dir}/${plugin.name}/tessdata">
@@ -150,6 +170,11 @@
                     <fileset dir="${lib.dir}"><include name="*-windows-*"/></fileset>
                     <fileset dir="${lib.dir}"><include name="*-macosx-*"/></fileset>
                 </delete>
+                <copy todir="${lib.dir}" flatten="false">
+                    <fileset dir="lib-linux">
+                        <include name="**/*.jar"/>
+                    </fileset>
+                </copy>
             </remove-jars>
         </build-platform-zip>
         <antcall target="restore-jars"/>
@@ -165,13 +190,35 @@
         </build-platform-zip>
         <antcall target="restore-jars"/>
 
-        <!-- macOS -->
+        <!-- macOS Intel -->
         <build-platform-zip platform="macos">
             <remove-jars>
                 <delete>
                     <fileset dir="${lib.dir}"><include name="*-windows-*"/></fileset>
                     <fileset dir="${lib.dir}"><include name="*-linux-*"/></fileset>
                 </delete>
+                <copy todir="${lib.dir}" flatten="false">
+                    <fileset dir="lib-macosx">
+                        <include name="**/*.jar"/>
+                    </fileset>
+                </copy>
+            </remove-jars>
+        </build-platform-zip>
+        <antcall target="restore-jars"/>
+
+        <!-- macOS ARM -->
+        <build-platform-zip platform="macos-arm64">
+            <remove-jars>
+                <delete>
+                    <fileset dir="${lib.dir}"><include name="*-windows-*"/></fileset>
+                    <fileset dir="${lib.dir}"><include name="*-linux-*"/></fileset>
+                    <fileset dir="${lib.dir}"><include name="*-macosx-*"/></fileset>
+                </delete>
+                <copy todir="${lib.dir}" flatten="false">
+                    <fileset dir="lib-macosx-arm64">
+                        <include name="**/*.jar"/>
+                    </fileset>
+                </copy>
             </remove-jars>
         </build-platform-zip>
         <antcall target="restore-jars"/>
