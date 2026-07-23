@@ -62,8 +62,6 @@ A combined Jameica/Hibiscus plugin for reading SEPA payment data from QR codes a
 - PDF text extraction (direct and OCR fallback)
 - Configurable OCR settings (OEM, PSM, DPI, language, whitelist/blacklist)
 
-![OCR Settings](img/screenshots/ocr-settings.png)
-
 ### Keywords
 
 - Recipient keywords: Automatic detection of recipient name

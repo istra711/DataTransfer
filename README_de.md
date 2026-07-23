@@ -60,8 +60,6 @@ Kombiniertes Jameica/Hibiscus-Plugin zum Lesen von SEPA-Zahlungsdaten aus QR-Cod
 - PDF-Textextraktion (direkt und OCR-Fallback)
 - Konfigurierbare OCR-Einstellungen (OEM, PSM, DPI, Sprache, Whitelist/Blacklist)
 
-![OCR-Einstellungen](img/screenshots/ocr-settings.png)
-
 ### Schlüsselwörter
 
 - Empfänger-Keywords: Automatische Erkennung des Empfängernamens
